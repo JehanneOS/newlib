@@ -385,6 +385,7 @@ case "${host}" in
 	sys_dir=jehanne
 	syscall_dir=syscalls
 	newlib_cflags="${newlib_cflags} -DREENTRANT_SYSCALLS_PROVIDED -DMALLOC_PROVIDED"
+	newlib_cflags="${newlib_cflags} -fno-omit-frame-pointer"
 	have_crt0="no"
 	;;
   *-*-netware*)

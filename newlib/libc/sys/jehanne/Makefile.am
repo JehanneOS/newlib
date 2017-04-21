@@ -10,7 +10,9 @@ else
 extra_objs =
 endif
  
-lib_a_SOURCES = getenv_r.c getenv.c malloc.c mallocr.c free.c freer.c calloc.c callocr.c realloc.c reallocr.c
+lib_a_SOURCES = getenv_r.c getenv.c malloc.c mallocr.c free.c freer.c \
+	calloc.c callocr.c realloc.c reallocr.c \
+	fputs.c fputws.c fvwrite.c fwrite.c puts.c vfprintf.c vfwprintf.c wbuf.c
 lib_a_LIBADD = $(extra_objs)
 EXTRA_lib_a_SOURCES = libposix_conf.c syscalls.c
 lib_a_DEPENDENCIES = $(extra_objs)
