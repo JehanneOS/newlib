@@ -89,6 +89,13 @@ _getpid_r(struct _reent *r)
 }
 
 int
+getppid(void)
+{
+	int *errnop = &_REENT->_errno;
+	return POSIX_getppid(errnop);
+}
+
+int
 _isatty_r(struct _reent *r, int file)
 {
 	int *errnop = &r->_errno;
