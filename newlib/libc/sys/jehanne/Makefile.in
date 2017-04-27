@@ -57,11 +57,7 @@ am_lib_a_OBJECTS = lib_a-getenv_r.$(OBJEXT) lib_a-getenv.$(OBJEXT) \
 	lib_a-malloc.$(OBJEXT) lib_a-mallocr.$(OBJEXT) \
 	lib_a-free.$(OBJEXT) lib_a-freer.$(OBJEXT) \
 	lib_a-calloc.$(OBJEXT) lib_a-callocr.$(OBJEXT) \
-	lib_a-realloc.$(OBJEXT) lib_a-reallocr.$(OBJEXT) \
-	lib_a-fputs.$(OBJEXT) lib_a-fputws.$(OBJEXT) \
-	lib_a-fvwrite.$(OBJEXT) lib_a-fwrite.$(OBJEXT) \
-	lib_a-puts.$(OBJEXT) lib_a-vfprintf.$(OBJEXT) \
-	lib_a-vfwprintf.$(OBJEXT) lib_a-wbuf.$(OBJEXT)
+	lib_a-realloc.$(OBJEXT) lib_a-reallocr.$(OBJEXT)
 lib_a_OBJECTS = $(am_lib_a_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp =
@@ -183,8 +179,7 @@ noinst_LIBRARIES = lib.a
 @MAY_SUPPLY_SYSCALLS_FALSE@extra_objs = 
 @MAY_SUPPLY_SYSCALLS_TRUE@extra_objs = syscalls.o libposix_conf.o
 lib_a_SOURCES = getenv_r.c getenv.c malloc.c mallocr.c free.c freer.c \
-	calloc.c callocr.c realloc.c reallocr.c \
-	fputs.c fputws.c fvwrite.c fwrite.c puts.c vfprintf.c vfwprintf.c wbuf.c
+	calloc.c callocr.c realloc.c reallocr.c
 
 lib_a_LIBADD = $(extra_objs)
 EXTRA_lib_a_SOURCES = libposix_conf.c syscalls.c
@@ -314,54 +309,6 @@ lib_a-reallocr.o: reallocr.c
 
 lib_a-reallocr.obj: reallocr.c
 	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-reallocr.obj `if test -f 'reallocr.c'; then $(CYGPATH_W) 'reallocr.c'; else $(CYGPATH_W) '$(srcdir)/reallocr.c'; fi`
-
-lib_a-fputs.o: fputs.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-fputs.o `test -f 'fputs.c' || echo '$(srcdir)/'`fputs.c
-
-lib_a-fputs.obj: fputs.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-fputs.obj `if test -f 'fputs.c'; then $(CYGPATH_W) 'fputs.c'; else $(CYGPATH_W) '$(srcdir)/fputs.c'; fi`
-
-lib_a-fputws.o: fputws.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-fputws.o `test -f 'fputws.c' || echo '$(srcdir)/'`fputws.c
-
-lib_a-fputws.obj: fputws.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-fputws.obj `if test -f 'fputws.c'; then $(CYGPATH_W) 'fputws.c'; else $(CYGPATH_W) '$(srcdir)/fputws.c'; fi`
-
-lib_a-fvwrite.o: fvwrite.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-fvwrite.o `test -f 'fvwrite.c' || echo '$(srcdir)/'`fvwrite.c
-
-lib_a-fvwrite.obj: fvwrite.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-fvwrite.obj `if test -f 'fvwrite.c'; then $(CYGPATH_W) 'fvwrite.c'; else $(CYGPATH_W) '$(srcdir)/fvwrite.c'; fi`
-
-lib_a-fwrite.o: fwrite.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-fwrite.o `test -f 'fwrite.c' || echo '$(srcdir)/'`fwrite.c
-
-lib_a-fwrite.obj: fwrite.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-fwrite.obj `if test -f 'fwrite.c'; then $(CYGPATH_W) 'fwrite.c'; else $(CYGPATH_W) '$(srcdir)/fwrite.c'; fi`
-
-lib_a-puts.o: puts.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-puts.o `test -f 'puts.c' || echo '$(srcdir)/'`puts.c
-
-lib_a-puts.obj: puts.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-puts.obj `if test -f 'puts.c'; then $(CYGPATH_W) 'puts.c'; else $(CYGPATH_W) '$(srcdir)/puts.c'; fi`
-
-lib_a-vfprintf.o: vfprintf.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-vfprintf.o `test -f 'vfprintf.c' || echo '$(srcdir)/'`vfprintf.c
-
-lib_a-vfprintf.obj: vfprintf.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-vfprintf.obj `if test -f 'vfprintf.c'; then $(CYGPATH_W) 'vfprintf.c'; else $(CYGPATH_W) '$(srcdir)/vfprintf.c'; fi`
-
-lib_a-vfwprintf.o: vfwprintf.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-vfwprintf.o `test -f 'vfwprintf.c' || echo '$(srcdir)/'`vfwprintf.c
-
-lib_a-vfwprintf.obj: vfwprintf.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-vfwprintf.obj `if test -f 'vfwprintf.c'; then $(CYGPATH_W) 'vfwprintf.c'; else $(CYGPATH_W) '$(srcdir)/vfwprintf.c'; fi`
-
-lib_a-wbuf.o: wbuf.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-wbuf.o `test -f 'wbuf.c' || echo '$(srcdir)/'`wbuf.c
-
-lib_a-wbuf.obj: wbuf.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-wbuf.obj `if test -f 'wbuf.c'; then $(CYGPATH_W) 'wbuf.c'; else $(CYGPATH_W) '$(srcdir)/wbuf.c'; fi`
 
 lib_a-libposix_conf.o: libposix_conf.c
 	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-libposix_conf.o `test -f 'libposix_conf.c' || echo '$(srcdir)/'`libposix_conf.c
