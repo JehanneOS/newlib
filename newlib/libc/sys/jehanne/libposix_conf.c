@@ -114,22 +114,30 @@ open_translator(int flag, int mode, long *omode, long *cperm)
 {
 	*omode = 0;
 	*cperm = 0;
-	if(flag & O_EXEC)
-		*omode |= OEXEC;
-	else if(flag & O_RDONLY)
+
+	switch(flag & O_ACCMODE){
+	case O_RDONLY:
 		*omode |= OREAD;
-	else if(flag & O_RDWR)
-		*omode |= ORDWR;
-	else if(flag & O_WRONLY)
+		break;
+	case O_WRONLY:
 		*omode |= OWRITE;
+		break;
+	case O_RDWR:
+		*omode |= ORDWR;
+		break;
+	}
+
+	if(flag & O_EXEC)
+		*omode = OEXEC;
 	else if(flag & O_SEARCH)
 		*omode |= OREAD;
-	
-	if(flag & O_CREAT)
+
+	if(flag & O_CREAT){
 		if(flag & O_EXCL)
 			*cperm = ~mode;
 		else
 			*cperm = mode;
+	}
 
 	if(flag & O_TRUNC)
 		*omode |= OTRUNC;
