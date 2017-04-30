@@ -186,4 +186,15 @@ _gettimeofday_r(struct _reent *r, struct timeval *p, void *z)
 	return POSIX_gettimeofday(errnop, p, z);
 }
 
+unsigned int
+sleep(unsigned int seconds)
+{
+	return POSIX_sleep(seconds);
+}
 
+int
+pipe(int fildes[2])
+{
+	int *errnop = &_REENT->_errno;
+	return POSIX_pipe(errnop, fildes);
+}
