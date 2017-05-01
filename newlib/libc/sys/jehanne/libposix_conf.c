@@ -81,7 +81,8 @@ struct Dir {
 #include <errno.h>
 #include <unistd.h>
 #include <sys/stat.h>
-#define __CYGWIN__
+#include <sys/wait.h>
+#define __CYGWIN__	/* needed for O_ACCMODE */
 #include <fcntl.h>
 #undef __CYGWIN__
 
@@ -172,6 +173,7 @@ initialize_newlib(void)
 	libposix_translate_open(open_translator);
 	libposix_set_signal_trampoline(signal_trampoline);
 	libposix_translate_error(default_error_translator, 0);
+	libposix_set_wait_options(0, WNOHANG, 0);
 
 	/* error numbers */
 	libposix_define_errno(PosixE2BIG, E2BIG);

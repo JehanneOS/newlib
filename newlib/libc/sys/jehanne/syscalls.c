@@ -172,6 +172,13 @@ _wait_r(struct _reent *r, int *status)
 	return POSIX_wait(errnop, status);
 }
 
+pid_t
+waitpid (pid_t reqpid, int *status, int options)
+{
+	int *errnop = &_REENT->_errno;
+	return POSIX_waitpid(errnop, reqpid, status, options);
+}
+
 long
 _write_r(struct _reent *r, int fd, const void *buf, size_t len)
 {
