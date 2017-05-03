@@ -105,8 +105,11 @@ _isatty_r(struct _reent *r, int file)
 int
 _kill_r(struct _reent *r, int pid, int sig)
 {
+	extern int __newlib_kill(int *errnop, int pid, int sig,
+			int (*killer)(int *errnop, int pid, int sig),
+			int (*disposer)(int sig, PosixSignalDisposition action, int pid));
 	int *errnop = &r->_errno;
-	return POSIX_kill(errnop, pid, sig);
+	return __newlib_kill(errnop, pid, sig, POSIX_kill, POSIX_signal_execute);
 }
 
 int
