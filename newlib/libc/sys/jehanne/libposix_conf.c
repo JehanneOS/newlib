@@ -107,95 +107,6 @@ __stat_reader(struct stat *s, const Dir *d)
 	return 0;
 }
 
-PosixSignalDisposition
-default_signal_disposition(int signal)
-{
-	// see http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/signal.h.html
-	switch(signal){
-	default:
-		return TerminateTheProcess;
-
-	case SIGABRT:
-		return TerminateTheProcessAndCoreDump;
-	case SIGALRM:
-		return TerminateTheProcess;
-	case SIGBUS:
-		return TerminateTheProcessAndCoreDump;
-	case SIGCHLD:
-		return SignalHandled;
-	case SIGCONT:
-		return ResumeTheProcess;
-	case SIGFPE:
-		return TerminateTheProcessAndCoreDump;
-	case SIGHUP:
-		return TerminateTheProcess;
-	case SIGILL:
-		return TerminateTheProcessAndCoreDump;
-	case SIGINT:
-		return TerminateTheProcess;
-	case SIGKILL:
-		return TerminateTheProcess;
-	case SIGPIPE:
-		return TerminateTheProcess;
-	case SIGQUIT:
-		return TerminateTheProcessAndCoreDump;
-	case SIGSEGV:
-		return TerminateTheProcessAndCoreDump;
-	case SIGSTOP:
-		return StopTheProcess;
-	case SIGTERM:
-		return TerminateTheProcess;
-	case SIGTSTP:
-		return StopTheProcess;
-	case SIGTTIN:
-		return StopTheProcess;
-	case SIGTTOU:
-		return StopTheProcess;
-	case SIGUSR1:
-		return TerminateTheProcess;
-	case SIGUSR2:
-		return TerminateTheProcess;
-	case SIGPOLL:
-		return TerminateTheProcess;
-	case SIGPROF:
-		return TerminateTheProcess;
-	case SIGSYS:
-		return TerminateTheProcessAndCoreDump;
-	case SIGTRAP:
-		return TerminateTheProcessAndCoreDump;
-	case SIGURG:
-		return SignalHandled;
-	case SIGVTALRM:
-		return TerminateTheProcess;
-	case SIGXCPU:
-		return TerminateTheProcessAndCoreDump;
-	case SIGXFSZ:
-		return TerminateTheProcessAndCoreDump;
-	}
-}
-
-int
-__newlib_kill(int *errnop, int pid, int sig,
-	int (*killer)(int *errnop, int pid, int sig),
-	int (*disposer)(int sig, PosixSignalDisposition action, int pid))
-{
-	switch(sig){
-	default:
-		return killer(errnop, pid, sig);
-
-	/* control signals follow */
-	case SIGKILL:
-		return disposer(sig, TerminateTheProcess, pid);
-	case SIGSTOP:
-	case SIGTSTP:
-	case SIGTTIN:
-	case SIGTTOU:
-		return disposer(sig, StopTheProcess, pid);
-	case SIGCONT:
-		return disposer(sig, ResumeTheProcess, pid);
-	}
-}
-
 static PosixError
 stat_reader(void *statp, const Dir *dir)
 {
@@ -250,7 +161,7 @@ default_error_translator(char* error, uintptr_t caller)
 	return PosixEINVAL;
 }
 
-static PosixSignalDisposition
+static int
 signal_trampoline(int signal)
 {
 	switch(__sigtramp(signal)){
@@ -258,11 +169,11 @@ signal_trampoline(int signal)
 		jehanne_sysfatal("newlib: error handling signal %d or unknown signal", signal);
 	case 0: // handle
 	case 3: // ignore
-		return SignalHandled;
+		return 1;
 	case 1: // default
-		return default_signal_disposition(signal);
+		return 0;
 	case 2: // error
-		return TerminateTheProcessAndCoreDump;
+		jehanne_sysfatal("newlib: error handling signal %d", signal);
 	default:
 		jehanne_sysfatal("newlib: unexpected disposition from signal trampoline");
 	}

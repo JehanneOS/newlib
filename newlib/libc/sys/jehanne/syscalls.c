@@ -37,13 +37,14 @@ __libc_init(int argc, char *argv[])
 static void
 newlib(int argc, char *argv[])
 {
-	int status = 0;
 	struct _reent private_reent = _REENT_INIT (private_reent);
 
 	/* initialize the private reentrancy structure */
 	_impure_ptr = &private_reent;
 
-	_init_signal();
+	/* initialize signal infrastructure */
+	_init_signal_r(_REENT);
+
 	libposix_init(argc, argv, initialize_newlib);
 }
 
@@ -105,11 +106,8 @@ _isatty_r(struct _reent *r, int file)
 int
 _kill_r(struct _reent *r, int pid, int sig)
 {
-	extern int __newlib_kill(int *errnop, int pid, int sig,
-			int (*killer)(int *errnop, int pid, int sig),
-			int (*disposer)(int sig, PosixSignalDisposition action, int pid));
 	int *errnop = &r->_errno;
-	return __newlib_kill(errnop, pid, sig, POSIX_kill, POSIX_signal_execute);
+	return POSIX_kill(errnop, pid, sig);
 }
 
 int
