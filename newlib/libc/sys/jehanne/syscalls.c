@@ -21,6 +21,7 @@
 #include <reent.h>
 
 typedef unsigned long clock_t;
+typedef unsigned long useconds_t;
 
 extern void initialize_newlib(void);
 static void newlib(int argc, char *argv[]) __attribute__((noreturn));
@@ -198,6 +199,13 @@ unsigned int
 sleep(unsigned int seconds)
 {
 	return POSIX_sleep(seconds);
+}
+
+int
+usleep(useconds_t usec)
+{
+	int *errnop = &_REENT->_errno;
+	return POSIX_usleep(errnop, usec);
 }
 
 int
