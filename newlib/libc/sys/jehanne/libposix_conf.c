@@ -249,6 +249,9 @@ initialize_newlib(void)
 #ifdef SIGUNUSED
 	libposix_define_signal(PosixSIGUNUSED, SIGUNUSED);
 #endif
+#if defined(SIGRTMIN) && defined(SIGRTMAX)
+	libposix_define_realtime_signals(SIGRTMIN, SIGRTMAX);
+#endif
 
 	/* error numbers */
 	libposix_define_errno(PosixE2BIG, E2BIG);
