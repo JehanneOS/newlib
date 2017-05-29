@@ -161,21 +161,22 @@ default_error_translator(char* error, uintptr_t caller)
 	return PosixEINVAL;
 }
 
-static int
+static PosixSignalAction
 signal_trampoline(int signal)
 {
 	switch(__sigtramp(signal)){
 	case -1: // unknown signal or uninitialized signals
 		jehanne_sysfatal("newlib: error handling signal %d or unknown signal", signal);
-	case 0: // handle
-	case 3: // ignore
-		return 1;
+	case 0: // catched
+		return SignalCatched;
+	case 3: // ignored
+		return SignalIgnored;
 	case 1: // default
-		return 0;
+		return SignalDefault;
 	case 2: // error
-		jehanne_sysfatal("newlib: error handling signal %d", signal);
+		return SignalError;
 	default:
-		jehanne_sysfatal("newlib: unexpected disposition from signal trampoline");
+		jehanne_sysfatal("newlib: unexpected PosixSignalAction from signal trampoline: %d", signal);
 	}
 }
 
