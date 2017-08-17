@@ -209,6 +209,13 @@ usleep(useconds_t usec)
 }
 
 int
+_pause(void)
+{
+	int *errnop = &_REENT->_errno;
+	return POSIX_pause(errnop);
+}
+
+int
 pipe(int fildes[2])
 {
 	int *errnop = &_REENT->_errno;
