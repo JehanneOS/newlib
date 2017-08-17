@@ -75,7 +75,7 @@
 #define _POINTER_INT short
 #endif
 
-#if defined(__m68k__) || defined(__mc68000__)
+#if defined(__m68k__) || defined(__mc68000__) || defined(__riscv)
 #define _READ_WRITE_RETURN_TYPE _ssize_t
 #endif
 
@@ -154,6 +154,7 @@
 #define _REENT_SMALL
 #endif
 
+#define __BUFSIZ__ 256
 #define __SMALL_BITFIELDS
 
 #ifdef __MSP430X_LARGE__
@@ -238,6 +239,7 @@
 #define _READ_WRITE_RETURN_TYPE _ssize_t
 #define __DYNAMIC_REENT__
 #define _REENT_GLOBAL_ATEXIT
+#define _REENT_GLOBAL_STDIO_STREAMS
 #endif
 
 #ifndef __EXPORT
@@ -272,6 +274,12 @@
 #ifdef _WANT_REENT_SMALL
 #ifndef _REENT_SMALL
 #define _REENT_SMALL
+#endif
+#endif
+
+#ifdef _WANT_REENT_GLOBAL_STDIO_STREAMS
+#ifndef _REENT_GLOBAL_STDIO_STREAMS
+#define _REENT_GLOBAL_STDIO_STREAMS
 #endif
 #endif
 

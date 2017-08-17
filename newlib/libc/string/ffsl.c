@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2001 David E. O'Brien.
+ * Copyright (c) 2017 embedded brains GmbH
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -22,20 +22,13 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $FreeBSD$
  */
 
-/*
- * This is a Solaris compatibility header
- */
+#include <strings.h>
 
-#ifndef	_ELF_H_
-#define	_ELF_H_
+int
+ffsl(long i)
+{
 
-#include <sys/types.h>
-#include <machine/elf.h>
-#include <sys/elf32.h>
-#include <sys/elf64.h>
-
-#endif /* !_ELF_H_ */
+	return (__builtin_ffsl(i));
+}

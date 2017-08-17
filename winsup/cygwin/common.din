@@ -102,6 +102,7 @@ __wrap__ZdlPv NOSIGFE               # void operator delete(void *p) throw()
 __wrap__ZdlPvRKSt9nothrow_t NOSIGFE # void operator delete(void *p, const std::nothrow_t &nt) throw()
 __xdrrec_getrec SIGFE
 __xdrrec_setnonblock SIGFE
+__xpg_sigpause SIGFE
 __xpg_strerror_r SIGFE
 _exit SIGFE
 _feinitialise NOSIGFE
@@ -432,6 +433,7 @@ exp2f NOSIGFE
 exp2l NOSIGFE
 expf NOSIGFE
 expl NOSIGFE
+explicit_bzero NOSIGFE
 expm1 NOSIGFE
 expm1f NOSIGFE
 expm1l NOSIGFE
@@ -505,6 +507,9 @@ flockfile SIGFE
 floor NOSIGFE
 floorf NOSIGFE
 floorl NOSIGFE
+fls NOSIGFE
+flsl NOSIGFE
+flsll NOSIGFE
 fma NOSIGFE
 fmaf NOSIGFE
 fmal NOSIGFE
@@ -1063,6 +1068,7 @@ pthread_mutex_getprioceiling SIGFE
 pthread_mutex_init SIGFE
 pthread_mutex_lock SIGFE
 pthread_mutex_setprioceiling SIGFE
+pthread_mutex_timedlock SIGFE
 pthread_mutex_trylock SIGFE
 pthread_mutex_unlock SIGFE
 pthread_mutexattr_destroy SIGFE
@@ -1079,6 +1085,8 @@ pthread_once SIGFE
 pthread_rwlock_destroy SIGFE
 pthread_rwlock_init SIGFE
 pthread_rwlock_rdlock SIGFE
+pthread_rwlock_timedrdlock SIGFE
+pthread_rwlock_timedwrlock SIGFE
 pthread_rwlock_tryrdlock SIGFE
 pthread_rwlock_trywrlock SIGFE
 pthread_rwlock_unlock SIGFE
@@ -1395,6 +1403,7 @@ strtoull NOSIGFE
 strtoull_l NOSIGFE
 strtoumax = strtoull NOSIGFE
 strupr NOSIGFE
+strverscmp NOSIGFE
 strxfrm NOSIGFE
 strxfrm_l NOSIGFE
 swab NOSIGFE
@@ -1491,6 +1500,7 @@ vasprintf SIGFE
 vdprintf SIGFE
 verr SIGFE
 verrx SIGFE
+versionsort NOSIGFE
 vfiprintf SIGFE
 vfork SIGFE
 vfprintf SIGFE

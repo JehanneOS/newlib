@@ -1621,6 +1621,10 @@ cnt_bs (PWCHAR s, PWCHAR e)
   return num;
 }
 
+#ifndef SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE
+#define SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE 2
+#endif
+
 static int
 symlink_native (const char *oldpath, path_conv &win32_newpath)
 {
@@ -1628,6 +1632,7 @@ symlink_native (const char *oldpath, path_conv &win32_newpath)
   path_conv win32_oldpath;
   PUNICODE_STRING final_oldpath, final_newpath;
   UNICODE_STRING final_oldpath_buf;
+  DWORD flags;
 
   if (isabspath (oldpath))
     {
@@ -1724,9 +1729,11 @@ symlink_native (const char *oldpath, path_conv &win32_newpath)
 	final_oldpath->Buffer[1] = L'\\';
     }
   /* Try to create native symlink. */
+  flags = win32_oldpath.isdir () ? SYMBOLIC_LINK_FLAG_DIRECTORY : 0;
+  if (wincap.has_unprivileged_createsymlink ())
+    flags |= SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE;
   if (!CreateSymbolicLinkW (final_newpath->Buffer, final_oldpath->Buffer,
-			    win32_oldpath.isdir ()
-			    ? SYMBOLIC_LINK_FLAG_DIRECTORY : 0))
+			    flags))
     {
       /* Repair native newpath, we still need it. */
       final_newpath->Buffer[1] = L'?';
@@ -1891,7 +1898,7 @@ symlink_worker (const char *oldpath, const char *newpath, bool isdevice)
 		     Win32 prefix for long pathnames!  So we have to tack off
 		     the prefix and convert the path to the "normal" syntax
 		     for ParseDisplayName.  */
-		  WCHAR *wc = wc_path + 4;
+		  PWCHAR wc = wc_path + 4;
 		  if (wc[1] != L':') /* native UNC path */
 		    *(wc += 2) = L'\\';
 		  HRESULT res;
@@ -2254,15 +2261,42 @@ symlink_info::check_sysfile (HANDLE h)
   return res;
 }
 
-int
-symlink_info::check_reparse_point (HANDLE h, bool remote)
+static bool
+check_reparse_point_string (PUNICODE_STRING subst)
 {
-  tmp_pathbuf tp;
+  /* Native mount points, or native non-relative symbolic links,
+     can be treated as posix symlinks only if the SubstituteName
+     can be converted from a native NT object namespace name to
+     a win32 name. We only know how to convert names with two
+     prefixes :
+       "\??\UNC\..."
+       "\??\X:..."
+     Other reparse points will be treated as files or
+     directories, not as posix symlinks.
+     */
+  if (RtlEqualUnicodePathPrefix (subst, &ro_u_natp, FALSE))
+    {
+      if (subst->Length >= 6 * sizeof(WCHAR) && subst->Buffer[5] == L':' &&
+          (subst->Length == 6 * sizeof(WCHAR) || subst->Buffer[6] == L'\\'))
+        return true;
+      else if (subst->Length >= 8 * sizeof(WCHAR) &&
+          wcsncmp (subst->Buffer + 4, L"UNC\\", 4) == 0)
+        return true;
+    }
+  return false;
+}
+
+/* Return values:
+    <0: Negative errno.
+     0: No symlink.
+     1: Symlink.
+*/
+int
+check_reparse_point_target (HANDLE h, bool remote, PREPARSE_DATA_BUFFER rp,
+			    PUNICODE_STRING psymbuf)
+{
   NTSTATUS status;
   IO_STATUS_BLOCK io;
-  PREPARSE_DATA_BUFFER rp = (PREPARSE_DATA_BUFFER) tp.c_get ();
-  UNICODE_STRING subst;
-  char srcbuf[SYMLINK_MAX + 7];
 
   /* On remote drives or under heavy load, NtFsControlFile can return with
      STATUS_PENDING.  If so, instead of creating an event object, just set
@@ -2287,19 +2321,24 @@ symlink_info::check_reparse_point (HANDLE h, bool remote)
 	 the followup call to NtFsControlFile(FSCTL_GET_REPARSE_POINT)
 	 returns with STATUS_NOT_A_REPARSE_POINT.  That's quite buggy, but
 	 we cope here with this scenario by not setting an error code. */
-      if (status != STATUS_NOT_A_REPARSE_POINT)
-	set_error (EIO);
-      return 0;
+      if (status == STATUS_NOT_A_REPARSE_POINT)
+	return 0;
+      return -EIO;
     }
   if (rp->ReparseTag == IO_REPARSE_TAG_SYMLINK)
-    /* Windows evaluates native symlink literally.  If a remote symlink points
-       to, say, C:\foo, it will be handled as if the target is the local file
-       C:\foo.  That comes in handy since that's how symlinks are treated under
-       POSIX as well. */
-    RtlInitCountedUnicodeString (&subst,
-		  (WCHAR *)((char *)rp->SymbolicLinkReparseBuffer.PathBuffer
-			+ rp->SymbolicLinkReparseBuffer.SubstituteNameOffset),
-		  rp->SymbolicLinkReparseBuffer.SubstituteNameLength);
+    {
+      /* Windows evaluates native symlink literally.  If a remote symlink points
+         to, say, C:\foo, it will be handled as if the target is the local file
+         C:\foo.  That comes in handy since that's how symlinks are treated under
+         POSIX as well. */
+      RtlInitCountedUnicodeString (psymbuf,
+		(PWCHAR)((PBYTE) rp->SymbolicLinkReparseBuffer.PathBuffer
+			 + rp->SymbolicLinkReparseBuffer.SubstituteNameOffset),
+		rp->SymbolicLinkReparseBuffer.SubstituteNameLength);
+      if ((rp->SymbolicLinkReparseBuffer.Flags & SYMLINK_FLAG_RELATIVE) ||
+          check_reparse_point_string (psymbuf))
+	return 1;
+    }
   else if (!remote && rp->ReparseTag == IO_REPARSE_TAG_MOUNT_POINT)
     {
       /* Don't handle junctions on remote filesystems as symlinks.  This type
@@ -2307,28 +2346,48 @@ symlink_info::check_reparse_point (HANDLE h, bool remote)
 	 target of the junction is the remote directory it is supposed to
 	 point to.  If we handle it as symlink, it will be mistreated as
 	 pointing to a dir on the local system. */
-      RtlInitCountedUnicodeString (&subst,
-		  (WCHAR *)((char *)rp->MountPointReparseBuffer.PathBuffer
-			  + rp->MountPointReparseBuffer.SubstituteNameOffset),
+      RtlInitCountedUnicodeString (psymbuf,
+		  (PWCHAR)((PBYTE) rp->MountPointReparseBuffer.PathBuffer
+			   + rp->MountPointReparseBuffer.SubstituteNameOffset),
 		  rp->MountPointReparseBuffer.SubstituteNameLength);
-      if (RtlEqualUnicodePathPrefix (&subst, &ro_u_volume, TRUE))
+      if (RtlEqualUnicodePathPrefix (psymbuf, &ro_u_volume, TRUE))
 	{
 	  /* Volume mount point.  Not treated as symlink. The return
-	     value of -1 is a hint for the caller to treat this as a
+	     value -EPERM is a hint for the caller to treat this as a
 	     volume mount point. */
-	  return -1;
+	  return -EPERM;
 	}
+      if (check_reparse_point_string (psymbuf))
+	return 1;
     }
-  else
+  return 0;
+}
+
+int
+symlink_info::check_reparse_point (HANDLE h, bool remote)
+{
+  tmp_pathbuf tp;
+  PREPARSE_DATA_BUFFER rp = (PREPARSE_DATA_BUFFER) tp.c_get ();
+  UNICODE_STRING symbuf;
+  char srcbuf[SYMLINK_MAX + 7];
+
+  int ret = check_reparse_point_target (h, remote, rp, &symbuf);
+  if (ret <= 0)
     {
+      if (ret == -EIO)
+	{
+	  set_error (EIO);
+	  return 0;
+	}
       /* Maybe it's a reparse point, but it's certainly not one we recognize.
 	 Drop REPARSE attribute so we don't try to use the flag accidentally.
 	 It's just some arbitrary file or directory for us. */
       fileattr &= ~FILE_ATTRIBUTE_REPARSE_POINT;
-      return 0;
+      return ret;
     }
-  sys_wcstombs (srcbuf, SYMLINK_MAX + 7, subst.Buffer,
-		subst.Length / sizeof (WCHAR));
+  /* ret is > 0, so it's a reparse point, path in symbuf. */
+  sys_wcstombs (srcbuf, SYMLINK_MAX + 7, symbuf.Buffer,
+		symbuf.Length / sizeof (WCHAR));
   pflags |= PATH_SYMLINK | PATH_REP;
   /* A symlink is never a directory. */
   fileattr &= ~FILE_ATTRIBUTE_DIRECTORY;
@@ -2951,7 +3010,7 @@ restart:
 		 filesystem information again, but with a NULL handle.
 		 This does what we want because fs_info::update opens the
 		 handle without FILE_OPEN_REPARSE_POINT. */
-	      if (res == -1)
+	      if (res < 0)
 		fs.update (&upath, NULL);
 	    }
 	}

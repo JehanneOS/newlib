@@ -679,6 +679,7 @@ sparc_leon
 sparc
 wince
 mips
+riscv
 rs6000
 mn10200
 mn10300
@@ -2454,6 +2455,10 @@ case "${target}" in
 	;;
   mips*-*-*)
 	subdirs="$subdirs mips"
+
+	;;
+  riscv*-*-*)
+	subdirs="$subdirs riscv"
 
 	;;
   powerpc-*-*|powerpcle-*-*)

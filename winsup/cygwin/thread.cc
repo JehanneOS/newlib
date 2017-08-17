@@ -1413,7 +1413,7 @@ pthread_rwlock::~pthread_rwlock ()
 }
 
 int
-pthread_rwlock::rdlock ()
+pthread_rwlock::rdlock (PLARGE_INTEGER timeout)
 {
   int result = 0;
   struct RWLOCK_READER *reader;
@@ -1426,19 +1426,27 @@ pthread_rwlock::rdlock ()
       if (reader->n < UINT32_MAX)
 	++reader->n;
       else
-	errno = EAGAIN;
+	result = EAGAIN;
       goto DONE;
     }
 
   while (writer || waiting_writers)
     {
+      int ret;
+
       pthread_cleanup_push (pthread_rwlock::rdlock_cleanup, this);
 
       ++waiting_readers;
-      cond_readers.wait (&mtx);
+      ret = cond_readers.wait (&mtx, timeout);
       --waiting_readers;
 
       pthread_cleanup_pop (0);
+
+      if (ret == ETIMEDOUT)
+	{
+	  result = ETIMEDOUT;
+	  goto DONE;
+	}
     }
 
   if ((reader = add_reader ()))
@@ -1481,7 +1489,7 @@ pthread_rwlock::tryrdlock ()
 }
 
 int
-pthread_rwlock::wrlock ()
+pthread_rwlock::wrlock (PLARGE_INTEGER timeout)
 {
   int result = 0;
   pthread_t self = pthread::self ();
@@ -1496,13 +1504,21 @@ pthread_rwlock::wrlock ()
 
   while (writer || readers)
     {
+      int ret;
+
       pthread_cleanup_push (pthread_rwlock::wrlock_cleanup, this);
 
       ++waiting_writers;
-      cond_writers.wait (&mtx);
+      ret = cond_writers.wait (&mtx, timeout);
       --waiting_writers;
 
       pthread_cleanup_pop (0);
+
+      if (ret == ETIMEDOUT)
+	{
+	  result = ETIMEDOUT;
+	  goto DONE;
+	}
     }
 
   writer = self;
@@ -1765,7 +1781,7 @@ pthread_mutex::~pthread_mutex ()
 }
 
 int
-pthread_mutex::lock ()
+pthread_mutex::lock (PLARGE_INTEGER timeout)
 {
   pthread_t self = ::pthread_self ();
   int result = 0;
@@ -1775,8 +1791,14 @@ pthread_mutex::lock ()
   else if (type == PTHREAD_MUTEX_NORMAL /* potentially causes deadlock */
 	   || !pthread::equal (owner, self))
     {
-      cygwait (win32_obj_id, cw_infinite, cw_sig | cw_sig_restart);
-      set_owner (self);
+      if (cygwait (win32_obj_id, timeout, cw_sig | cw_sig_restart)
+	  != WAIT_TIMEOUT)
+	set_owner (self);
+      else
+	{
+	  InterlockedDecrement (&lock_counter);
+	  result = ETIMEDOUT;
+	}
     }
   else
     {
@@ -2515,6 +2537,41 @@ pthread::resume (pthread_t *thread)
   return 0;
 }
 
+static inline int
+pthread_convert_abstime (clockid_t clock_id, const struct timespec *abstime,
+			 PLARGE_INTEGER timeout)
+{
+  struct timespec tp;
+
+  /* According to SUSv3, the abstime value must be checked for validity. */
+  if (abstime->tv_sec < 0
+      || abstime->tv_nsec < 0
+      || abstime->tv_nsec > 999999999)
+    return EINVAL;
+
+  /* Check for immediate timeout before converting */
+  clock_gettime (clock_id, &tp);
+  if (tp.tv_sec > abstime->tv_sec
+      || (tp.tv_sec == abstime->tv_sec
+	  && tp.tv_nsec > abstime->tv_nsec))
+    return ETIMEDOUT;
+
+  timeout->QuadPart = abstime->tv_sec * NSPERSEC
+		     + (abstime->tv_nsec + 99LL) / 100LL;
+  switch (clock_id)
+    {
+    case CLOCK_REALTIME:
+      timeout->QuadPart += FACTOR;
+      break;
+    default:
+      /* other clocks must be handled as relative timeout */
+      timeout->QuadPart -= tp.tv_sec * NSPERSEC + tp.tv_nsec / 100LL;
+      timeout->QuadPart *= -1LL;
+      break;
+    }
+  return 0;
+}
+
 extern "C" int
 pthread_getattr_np (pthread_t thread, pthread_attr_t *attr)
 {
@@ -2841,7 +2898,6 @@ extern "C" int
 pthread_cond_timedwait (pthread_cond_t *cond, pthread_mutex_t *mutex,
 			const struct timespec *abstime)
 {
-  struct timespec tp;
   LARGE_INTEGER timeout;
 
   pthread_testcancel ();
@@ -2852,34 +2908,10 @@ pthread_cond_timedwait (pthread_cond_t *cond, pthread_mutex_t *mutex,
       if (err)
 	return err;
 
-      /* According to SUSv3, the abstime value must be checked for validity. */
-      if (abstime->tv_sec < 0
-	  || abstime->tv_nsec < 0
-	  || abstime->tv_nsec > 999999999)
-	__leave;
+      err = pthread_convert_abstime ((*cond)->clock_id, abstime, &timeout);
+      if (err)
+	return err;
 
-      clock_gettime ((*cond)->clock_id, &tp);
-
-      /* Check for immediate timeout before converting */
-      if (tp.tv_sec > abstime->tv_sec
-	  || (tp.tv_sec == abstime->tv_sec
-	      && tp.tv_nsec > abstime->tv_nsec))
-	return ETIMEDOUT;
-
-      timeout.QuadPart = abstime->tv_sec * NSPERSEC
-			  + (abstime->tv_nsec + 99LL) / 100LL;
-
-      switch ((*cond)->clock_id)
-	{
-	case CLOCK_REALTIME:
-	  timeout.QuadPart += FACTOR;
-	  break;
-	default:
-	  /* other clocks must be handled as relative timeout */
-	  timeout.QuadPart -= tp.tv_sec * NSPERSEC + tp.tv_nsec / 100LL;
-	  timeout.QuadPart *= -1LL;
-	  break;
-	}
       return (*cond)->wait (*mutex, &timeout);
     }
   __except (NO_ERROR) {}
@@ -3036,6 +3068,37 @@ pthread_rwlock_rdlock (pthread_rwlock_t *rwlock)
 }
 
 extern "C" int
+pthread_rwlock_timedrdlock (pthread_rwlock_t *rwlock,
+			    const struct timespec *abstime)
+{
+  LARGE_INTEGER timeout;
+
+  pthread_testcancel ();
+
+  if (pthread_rwlock::is_initializer (rwlock))
+    pthread_rwlock::init (rwlock, NULL);
+  if (!pthread_rwlock::is_good_object (rwlock))
+    return EINVAL;
+
+  /* According to SUSv3, abstime need not be checked for validity,
+     if the rwlock can be locked immediately. */
+  if (!(*rwlock)->tryrdlock ())
+    return 0;
+
+  __try
+    {
+      int err = pthread_convert_abstime (CLOCK_REALTIME, abstime, &timeout);
+      if (err)
+	return err;
+
+      return (*rwlock)->rdlock (&timeout);
+    }
+  __except (NO_ERROR) {}
+  __endtry
+  return EINVAL;
+}
+
+extern "C" int
 pthread_rwlock_tryrdlock (pthread_rwlock_t *rwlock)
 {
   if (pthread_rwlock::is_initializer (rwlock))
@@ -3057,6 +3120,37 @@ pthread_rwlock_wrlock (pthread_rwlock_t *rwlock)
     return EINVAL;
 
   return (*rwlock)->wrlock ();
+}
+
+extern "C" int
+pthread_rwlock_timedwrlock (pthread_rwlock_t *rwlock,
+			    const struct timespec *abstime)
+{
+  LARGE_INTEGER timeout;
+
+  pthread_testcancel ();
+
+  if (pthread_rwlock::is_initializer (rwlock))
+    pthread_rwlock::init (rwlock, NULL);
+  if (!pthread_rwlock::is_good_object (rwlock))
+    return EINVAL;
+
+  /* According to SUSv3, abstime need not be checked for validity,
+     if the rwlock can be locked immediately. */
+  if (!(*rwlock)->trywrlock ())
+    return 0;
+
+  __try
+    {
+      int err = pthread_convert_abstime (CLOCK_REALTIME, abstime, &timeout);
+      if (err)
+	return err;
+
+      return (*rwlock)->wrlock (&timeout);
+    }
+  __except (NO_ERROR) {}
+  __endtry
+  return EINVAL;
 }
 
 extern "C" int
@@ -3272,6 +3366,34 @@ pthread_mutex_lock (pthread_mutex_t *mutex)
   if (!pthread_mutex::is_good_object (mutex))
     return EINVAL;
   return (*mutex)->lock ();
+}
+
+extern "C" int
+pthread_mutex_timedlock (pthread_mutex_t *mutex, const struct timespec *abstime)
+{
+  LARGE_INTEGER timeout;
+
+  if (pthread_mutex::is_initializer (mutex))
+    pthread_mutex::init (mutex, NULL, *mutex);
+  if (!pthread_mutex::is_good_object (mutex))
+    return EINVAL;
+
+  /* According to SUSv3, abstime need not be checked for validity,
+     if the mutex can be locked immediately. */
+  if (!(*mutex)->trylock ())
+    return 0;
+
+  __try
+    {
+      int err = pthread_convert_abstime (CLOCK_REALTIME, abstime, &timeout);
+      if (err)
+	return err;
+
+      return (*mutex)->lock (&timeout);
+    }
+  __except (NO_ERROR) {}
+  __endtry
+  return EINVAL;
 }
 
 extern "C" int
@@ -3597,16 +3719,11 @@ semaphore::_trywait ()
 }
 
 int
-semaphore::_timedwait (const struct timespec *abstime)
+semaphore::_wait (PLARGE_INTEGER timeout)
 {
-  LARGE_INTEGER timeout;
-
   __try
     {
-      timeout.QuadPart = abstime->tv_sec * NSPERSEC
-			 + (abstime->tv_nsec + 99) / 100 + FACTOR;
-
-      switch (cygwait (win32_obj_id, &timeout,
+      switch (cygwait (win32_obj_id, timeout,
 		       cw_cancel | cw_cancel_self | cw_sig_eintr))
 	{
 	case WAIT_OBJECT_0:
@@ -3623,35 +3740,8 @@ semaphore::_timedwait (const struct timespec *abstime)
 	  return -1;
 	}
     }
-  __except (NO_ERROR)
-    {
-      /* According to SUSv3, abstime need not be checked for validity,
-	 if the semaphore can be locked immediately. */
-      if (_trywait ())
-	{
-	  set_errno (EINVAL);
-	  return -1;
-	}
-    }
+  __except (NO_ERROR) {}
   __endtry
-  return 0;
-}
-
-int
-semaphore::_wait ()
-{
-  switch (cygwait (win32_obj_id, cw_infinite,
-		   cw_cancel | cw_cancel_self | cw_sig_eintr))
-    {
-    case WAIT_OBJECT_0:
-      break;
-    case WAIT_SIGNALED:
-      set_errno (EINTR);
-      return -1;
-    default:
-      pthread_printf ("cygwait failed. %E");
-      break;
-    }
   return 0;
 }
 
@@ -3840,13 +3930,30 @@ semaphore::trywait (sem_t *sem)
 int
 semaphore::timedwait (sem_t *sem, const struct timespec *abstime)
 {
+  LARGE_INTEGER timeout;
+
   if (!is_good_object (sem))
     {
       set_errno (EINVAL);
       return -1;
     }
 
-  return (*sem)->_timedwait (abstime);
+  /* According to SUSv3, abstime need not be checked for validity,
+     if the semaphore can be locked immediately. */
+  if (!(*sem)->_trywait ())
+    return 0;
+
+  __try
+    {
+      int err = pthread_convert_abstime (CLOCK_REALTIME, abstime, &timeout);
+      if (err)
+	return err;
+
+      return (*sem)->_wait (&timeout);
+    }
+  __except (NO_ERROR) {}
+  __endtry
+  return EINVAL;
 }
 
 int

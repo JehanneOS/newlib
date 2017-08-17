@@ -142,6 +142,11 @@ __start:
 	bset	r2, r2, 19
 	flag	r2
 #endif
+
+#if defined (__ARC_CODE_DENSITY__)
+	;; Initialize jli_base
+	sr	@__JLI_TABLE__,[jli_base]
+#endif
 	mov	gp, @__SDATA_BEGIN__
 	mov_s	r2, @__sbss_start	; r2 = start of the bss section
 	sub	r3, @_end, r2		; r3 = size of the bss section in bytes
@@ -189,11 +194,18 @@ __start:
 	mov_s	r0, 1
 	st_s	r0, [r1, 4]		; _GLOBAL_REENT->atexit0._ind
 ; branch to _init
-#if defined (__EM__) || defined (__HS__)
+#if defined (__ARCEM__) || defined (__ARCHS__)
 	jl	@_init
 #else
 	bl	@_init
 #endif /* __ARCEM__ || __ARCHS__ */
+
+#ifdef PROFILE_SUPPORT /* Defined in gcrt0.S.  */
+	mov	r0,@__start
+	mov	r1,@_etext
+	jl	@_monstartup
+#endif /* PROFILE_SUPPORT */
+
 	mov_s	r0, r13
 	mov_s	r1, r14
 ; branch to main
@@ -204,6 +216,13 @@ __start:
 	bl.d	@main
 	mov	fp, 0			; initialize frame pointer
 #endif /* __ARCEM__ || __ARCHS__ */
+
+#ifdef PROFILE_SUPPORT
+	mov	r13, r0		; Save return code
+	jl	@_mcleanup
+	mov	r0, r13
+#endif /* PROFILE_SUPPORT */
+
 	; r0 contains exit code
 	j	@exit
 

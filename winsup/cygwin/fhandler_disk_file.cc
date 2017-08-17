@@ -28,6 +28,12 @@ details. */
 #define _COMPILING_NEWLIB
 #include <dirent.h>
 
+enum __DIR_mount_type {
+  __DIR_mount_none = 0,
+  __DIR_mount_target,
+  __DIR_mount_virt_target
+};
+
 class __DIR_mounts
 {
   int		 count;
@@ -40,23 +46,6 @@ class __DIR_mounts
 #define __DIR_PROC	(MAX_MOUNTS)
 #define __DIR_CYGDRIVE	(MAX_MOUNTS+1)
 #define __DIR_DEV	(MAX_MOUNTS+2)
-
-  ino_t eval_ino (int idx)
-    {
-      ino_t ino = 0;
-      char fname[parent_dir_len + mounts[idx].Length + 2];
-      struct stat st;
-
-      char *c = stpcpy (fname, parent_dir);
-      if (c[- 1] != '/')
-	*c++ = '/';
-      sys_wcstombs (c, mounts[idx].Length + 1,
-		    mounts[idx].Buffer, mounts[idx].Length / sizeof (WCHAR));
-      path_conv pc (fname, PC_SYM_NOFOLLOW | PC_POSIX | PC_KEEP_HANDLE);
-      if (!stat_worker (pc, &st))
-	ino = st.st_ino;
-      return ino;
-    }
 
 public:
   __DIR_mounts (const char *posix_path)
@@ -73,48 +62,47 @@ public:
 	RtlFreeUnicodeString (&mounts[i]);
       RtlFreeUnicodeString (&cygdrive);
     }
-  ino_t check_mount (PUNICODE_STRING fname, ino_t ino,
-			 bool eval = true)
+  /* For an entry within this dir, check if a mount point exists. */
+  bool check_mount (PUNICODE_STRING fname)
     {
       if (parent_dir_len == 1)	/* root dir */
 	{
 	  if (RtlEqualUnicodeString (fname, &ro_u_proc, FALSE))
 	    {
 	      found[__DIR_PROC] = true;
-	      return 2;
+	      return true;
 	    }
 	  if (RtlEqualUnicodeString (fname, &ro_u_dev, FALSE))
 	    {
 	      found[__DIR_DEV] = true;
-	      return 2;
+	      return true;
 	    }
 	  if (fname->Length / sizeof (WCHAR) == mount_table->cygdrive_len - 2
 	      && RtlEqualUnicodeString (fname, &cygdrive, FALSE))
 	    {
 	      found[__DIR_CYGDRIVE] = true;
-	      return 2;
+	      return true;
 	    }
 	}
       for (int i = 0; i < count; ++i)
 	if (RtlEqualUnicodeString (fname, &mounts[i], FALSE))
 	  {
 	    found[i] = true;
-	    return eval ? eval_ino (i) : 1;
+	    return true;
 	  }
-      return ino;
+      return false;
     }
-  ino_t check_missing_mount (PUNICODE_STRING retname = NULL)
+  /* On each call, add another mount point within this directory, which is
+     not backed by a real subdir. */
+  __DIR_mount_type check_missing_mount (PUNICODE_STRING retname = NULL)
     {
       for (int i = 0; i < count; ++i)
 	if (!found[i])
 	  {
 	    found[i] = true;
 	    if (retname)
-	      {
-		*retname = mounts[i];
-		return eval_ino (i);
-	      }
-	    return 1;
+	      *retname = mounts[i];
+	    return __DIR_mount_target;
 	  }
       if (parent_dir_len == 1)  /* root dir */
 	{
@@ -123,14 +111,14 @@ public:
 	      found[__DIR_PROC] = true;
 	      if (retname)
 		*retname = ro_u_proc;
-	      return 2;
+	      return __DIR_mount_virt_target;
 	    }
 	  if (!found[__DIR_DEV])
 	    {
 	      found[__DIR_DEV] = true;
 	      if (retname)
 		*retname = ro_u_dev;
-	      return 2;
+	      return __DIR_mount_virt_target;
 	    }
 	  if (!found[__DIR_CYGDRIVE])
 	    {
@@ -139,11 +127,11 @@ public:
 		{
 		  if (retname)
 		    *retname = cygdrive;
-		  return 2;
+		  return __DIR_mount_virt_target;
 		}
 	    }
 	}
-      return 0;
+      return __DIR_mount_none;
     }
     void rewind () { memset (found, 0, sizeof found); }
 };
@@ -173,46 +161,26 @@ path_conv::isgood_inode (ino_t ino) const
   return true;
 }
 
-/* Check reparse point for type.  IO_REPARSE_TAG_MOUNT_POINT types are
-   either volume mount points, which are treated as directories, or they
-   are directory mount points, which are treated as symlinks.
-   IO_REPARSE_TAG_SYMLINK types are always symlinks.  We don't know
-   anything about other reparse points, so they are treated as unknown.  */
-static inline int
-readdir_check_reparse_point (POBJECT_ATTRIBUTES attr)
+/* Check reparse point to determine if it should be treated as a
+   posix symlink or as a normal file/directory.  Logic is explained
+   in detail in check_reparse_point_target in path.cc. */
+static inline bool
+readdir_check_reparse_point (POBJECT_ATTRIBUTES attr, bool remote)
 {
-  DWORD ret = DT_UNKNOWN;
-  IO_STATUS_BLOCK io;
+  NTSTATUS status;
   HANDLE reph;
-  UNICODE_STRING subst;
+  IO_STATUS_BLOCK io;
+  tmp_pathbuf tp;
+  UNICODE_STRING symbuf;
+  bool ret = false;
 
-  if (NT_SUCCESS (NtOpenFile (&reph, READ_CONTROL, attr, &io,
-			      FILE_SHARE_VALID_FLAGS,
-			      FILE_OPEN_FOR_BACKUP_INTENT
-			      | FILE_OPEN_REPARSE_POINT)))
+  status = NtOpenFile (&reph, READ_CONTROL, attr, &io, FILE_SHARE_VALID_FLAGS,
+		       FILE_OPEN_FOR_BACKUP_INTENT | FILE_OPEN_REPARSE_POINT);
+  if (NT_SUCCESS (status))
     {
-      PREPARSE_DATA_BUFFER rp = (PREPARSE_DATA_BUFFER)
-		  alloca (MAXIMUM_REPARSE_DATA_BUFFER_SIZE);
-      if (NT_SUCCESS (NtFsControlFile (reph, NULL, NULL, NULL,
-		      &io, FSCTL_GET_REPARSE_POINT, NULL, 0,
-		      (LPVOID) rp, MAXIMUM_REPARSE_DATA_BUFFER_SIZE)))
-	{
-	  if (rp->ReparseTag == IO_REPARSE_TAG_MOUNT_POINT)
-	    {
-	      RtlInitCountedUnicodeString (&subst,
-		  (WCHAR *)((char *)rp->MountPointReparseBuffer.PathBuffer
-			    + rp->MountPointReparseBuffer.SubstituteNameOffset),
-		  rp->MountPointReparseBuffer.SubstituteNameLength);
-	      /* Only volume mountpoints are treated as directories. */
-	      if (RtlEqualUnicodePathPrefix (&subst, &ro_u_volume, TRUE))
-		ret = DT_DIR;
-	      else
-		ret = DT_LNK;
-	    }
-	  else if (rp->ReparseTag == IO_REPARSE_TAG_SYMLINK)
-	    ret = DT_LNK;
-	  NtClose (reph);
-	}
+      PREPARSE_DATA_BUFFER rp = (PREPARSE_DATA_BUFFER) tp.c_get ();
+      ret = (check_reparse_point_target (reph, remote, rp, &symbuf) > 0);
+      NtClose (reph);
     }
   return ret;
 }
@@ -463,18 +431,25 @@ fhandler_base::fstat_helper (struct stat *buf)
 
   buf->st_blksize = PREFERRED_IO_BLKSIZE;
 
-  if (pfai->StandardInformation.AllocationSize.QuadPart >= 0LL)
+  if (buf->st_size == 0
+      && pfai->StandardInformation.AllocationSize.QuadPart == 0LL)
+    /* File is empty and no blocks are preallocated. */
+    buf->st_blocks = 0;
+  else if (pfai->StandardInformation.AllocationSize.QuadPart > 0LL)
     /* A successful NtQueryInformationFile returns the allocation size
-       correctly for compressed and sparse files as well. */
+       correctly for compressed and sparse files as well.
+       Allocation size 0 is ignored here because (at least) Windows 10
+       1607 always returns 0 for CompactOS compressed files. */
     buf->st_blocks = (pfai->StandardInformation.AllocationSize.QuadPart
 		      + S_BLKSIZE - 1) / S_BLKSIZE;
-  else if (::has_attribute (attributes, FILE_ATTRIBUTE_COMPRESSED
-					| FILE_ATTRIBUTE_SPARSE_FILE)
+  else if ((pfai->StandardInformation.AllocationSize.QuadPart == 0LL
+	    || ::has_attribute (attributes, FILE_ATTRIBUTE_COMPRESSED
+					  | FILE_ATTRIBUTE_SPARSE_FILE))
 	   && h && !is_fs_special ()
 	   && !NtQueryInformationFile (h, &st, (PVOID) &fci, sizeof fci,
 				       FileCompressionInformation))
     /* Otherwise we request the actual amount of bytes allocated for
-       compressed and sparsed files. */
+       compressed, sparsed and CompactOS files. */
     buf->st_blocks = (fci.CompressedFileSize.QuadPart + S_BLKSIZE - 1)
 		     / S_BLKSIZE;
   else
@@ -1982,16 +1957,17 @@ fhandler_disk_file::readdir_helper (DIR *dir, dirent *de, DWORD w32_err,
 {
   if (w32_err)
     {
-      bool added = false;
-      if ((de->d_ino = d_mounts (dir)->check_missing_mount (fname)))
-	added = true;
-      if (!added)
+      switch (d_mounts (dir)->check_missing_mount (fname))
 	{
+	case __DIR_mount_none:
 	  fname->Length = 0;
 	  return geterrno_from_win_error (w32_err);
+	case __DIR_mount_virt_target:
+	  de->d_type = DT_DIR;
+	  break;
+	default:
+	  break;
 	}
-      if (de->d_ino == 2)	/* Inode number for virtual dirs. */
-	de->d_type = DT_DIR;
       attr = 0;
       dir->__flags &= ~dirent_set_d_ino;
     }
@@ -1999,8 +1975,7 @@ fhandler_disk_file::readdir_helper (DIR *dir, dirent *de, DWORD w32_err,
   /* Set d_type if type can be determined from file attributes.  For .lnk
      symlinks, d_type will be reset below.  Reparse points can be NTFS
      symlinks, even if they have the FILE_ATTRIBUTE_DIRECTORY flag set. */
-  if (attr &&
-      !(attr & (~FILE_ATTRIBUTE_VALID_FLAGS | FILE_ATTRIBUTE_REPARSE_POINT)))
+  if (attr && !(attr & ~FILE_ATTRIBUTE_VALID_FLAGS))
     {
       if (attr & FILE_ATTRIBUTE_DIRECTORY)
 	de->d_type = DT_DIR;
@@ -2009,32 +1984,19 @@ fhandler_disk_file::readdir_helper (DIR *dir, dirent *de, DWORD w32_err,
 	de->d_type = DT_REG;
     }
 
-  /* Check for directory reparse point.  These are potential volume mount
-     points which have another inode than the underlying directory. */
-  if ((attr & (FILE_ATTRIBUTE_DIRECTORY | FILE_ATTRIBUTE_REPARSE_POINT))
-      == (FILE_ATTRIBUTE_DIRECTORY | FILE_ATTRIBUTE_REPARSE_POINT))
+  /* Check for reparse points that can be treated as posix symlinks.
+     Mountpoints and unknown or unhandled reparse points will be treated
+     as normal file/directory/unknown. In all cases, returning the INO of
+     the reparse point (not of the target) matches behavior of posix systems.
+     */
+  if (attr & FILE_ATTRIBUTE_REPARSE_POINT)
     {
-      HANDLE reph;
-      OBJECT_ATTRIBUTES attr;
-      IO_STATUS_BLOCK io;
+      OBJECT_ATTRIBUTES oattr;
 
-      InitializeObjectAttributes (&attr, fname, pc.objcaseinsensitive (),
+      InitializeObjectAttributes (&oattr, fname, pc.objcaseinsensitive (),
 				  get_handle (), NULL);
-      de->d_type = readdir_check_reparse_point (&attr);
-      if (de->d_type == DT_DIR)
-	{
-	  /* Volume mountpoints are treated as directories.  We have to fix
-	     the inode number, otherwise we have the inode number of the
-	     mount point, rather than the inode number of the toplevel
-	     directory of the mounted drive. */
-	  if (NT_SUCCESS (NtOpenFile (&reph, READ_CONTROL, &attr, &io,
-				      FILE_SHARE_VALID_FLAGS,
-				      FILE_OPEN_FOR_BACKUP_INTENT)))
-	    {
-	      de->d_ino = pc.get_ino_by_handle (reph);
-	      NtClose (reph);
-	    }
-	}
+      if (readdir_check_reparse_point (&oattr, isremote ()))
+        de->d_type = DT_LNK;
     }
 
   /* Check for Windows shortcut. If it's a Cygwin or U/WIN symlink, drop the
@@ -2222,7 +2184,7 @@ go_ahead:
 		((PFILE_BOTH_DIR_INFORMATION) buf)->FileAttributes;
 	}
       RtlInitCountedUnicodeString (&fname, FileName, FileNameLength);
-      de->d_ino = d_mounts (dir)->check_mount (&fname, de->d_ino);
+      d_mounts (dir)->check_mount (&fname);
       if (de->d_ino == 0 && (dir->__flags & dirent_set_d_ino))
 	{
 	  /* Don't try to optimize relative to dir->__d_position.  On several

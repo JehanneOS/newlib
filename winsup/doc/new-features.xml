@@ -4,6 +4,27 @@
 
 <sect1 id="ov-new"><title>What's new and what changed in Cygwin</title>
 
+<sect2 id="ov-new2.9"><title>What's new and what changed in 2.9</title>
+
+<itemizedlist mark="bullet">
+
+<listitem><para>
+New APIs: explicit_bzero.
+</para></listitem>
+
+<listitem><para>
+New APIs: pthread_mutex_timedwait, pthread_rwlock_timedrdlock,
+pthread_rwlock_timedwrlock.
+</para></listitem>
+
+<listitem><para>
+Improved implementation of &lt;elf.h&gt;.
+</para></listitem>
+
+</itemizedlist>
+
+</sect2>
+
 <sect2 id="ov-new2.8"><title>What's new and what changed in 2.8</title>
 
 <itemizedlist mark="bullet">
