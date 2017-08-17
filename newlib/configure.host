@@ -390,6 +390,7 @@ case "${host}" in
   *-*-jehanne*)
 	sys_dir=jehanne
 	syscall_dir=syscalls
+	posix_dir=posix
 	newlib_cflags="${newlib_cflags} -DREENTRANT_SYSCALLS_PROVIDED -DMALLOC_PROVIDED"
 	newlib_cflags="${newlib_cflags} -fno-omit-frame-pointer"
 	default_newlib_io_c99_formats="yes"
