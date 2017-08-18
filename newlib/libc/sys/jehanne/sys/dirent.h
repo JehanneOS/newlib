@@ -18,16 +18,28 @@
 #ifndef _SYS_DIRENT_H
 #define _SYS_DIRENT_H
 
+#define MAXNAMLEN 127		/* sizeof(struct dirent.d_name)-1 */
+
 struct dirent
 {
 	ino_t	d_ino;
-	char	d_name[256];
+	char	d_name[MAXNAMLEN+1];
 };
 
-#define d_fileno	d_ino	/* Cheap backwards compatibility. */
-#define dirent64 	dirent
+typedef struct {
+	int dd_fd;		/* Directory file. */
+	int dd_loc;		/* Position in buffer. */
+	int dd_seek;
+	char *dd_buf;		/* Pointer to buffer. */
+	int dd_len;		/* Buffer size. */
+	int dd_size;		/* Data size in buffer. */
+} DIR;
 
-typedef struct DIR DIR;
+#define d_fileno	d_ino	/* Cheap backwards compatibility. */
+
+#ifdef __USE_LARGEFILE64
+#define dirent64		dirent
+#endif
 
 DIR *opendir(const char *);
 struct dirent *readdir(DIR *);
