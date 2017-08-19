@@ -209,7 +209,7 @@ usleep(useconds_t usec)
 }
 
 int
-_pause(void)
+pause(void)
 {
 	int *errnop = &_REENT->_errno;
 	return POSIX_pause(errnop);

@@ -15,6 +15,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Jehanne.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <sys/types.h>
+
 #ifndef _SYS_DIRENT_H
 #define _SYS_DIRENT_H
 
@@ -22,9 +24,12 @@
 
 struct dirent
 {
-	ino_t	d_ino;
-	char	d_name[MAXNAMLEN+1];
+	ino_t		d_ino;
+	char		d_name[MAXNAMLEN+1];
+	unsigned int	d_reclen;
 };
+
+#define _DIRENT_HAVE_D_RECLEN
 
 typedef struct {
 	int dd_fd;		/* Directory file. */

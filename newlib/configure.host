@@ -588,6 +588,9 @@ esac
 
 case "${host}" in
   *-*-jehanne*)
+	test -z "$jehanne_srcdir" && jehanne_srcdir=`cd ${srcdir}/libc/sys/jehanne; pwd`
+	export jehanne_srcdir
+	CC="${CC} -I${jehanne_srcdir}/include"
 	;;
   *-*-cygwin*)
 	test -z "$cygwin_srcdir" && cygwin_srcdir=`cd ${srcdir}/../winsup/cygwin; pwd`
