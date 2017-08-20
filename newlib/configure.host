@@ -391,9 +391,7 @@ case "${host}" in
 	sys_dir=jehanne
 	syscall_dir=syscalls
 	posix_dir=posix
-	newlib_cflags="${newlib_cflags} -DREENTRANT_SYSCALLS_PROVIDED -DMALLOC_PROVIDED"
-	newlib_cflags="${newlib_cflags} -fno-omit-frame-pointer"
-	default_newlib_io_c99_formats="yes"
+	unix_dir=unix
 	have_crt0="no"
 	;;
   *-*-netware*)
@@ -587,11 +585,6 @@ esac
 # THIS TABLE IS ALPHA SORTED.  KEEP IT THAT WAY.
 
 case "${host}" in
-  *-*-jehanne*)
-	test -z "$jehanne_srcdir" && jehanne_srcdir=`cd ${srcdir}/libc/sys/jehanne; pwd`
-	export jehanne_srcdir
-	CC="${CC} -I${jehanne_srcdir}/include"
-	;;
   *-*-cygwin*)
 	test -z "$cygwin_srcdir" && cygwin_srcdir=`cd ${srcdir}/../winsup/cygwin; pwd`
 	export cygwin_srcdir
@@ -602,6 +595,15 @@ case "${host}" in
 	CC="${CC} -I${cygwin_srcdir}/include"
 	newlib_cflags="${newlib_cflags} -DHAVE_OPENDIR -DHAVE_RENAME -DSIGNAL_PROVIDED -D_COMPILING_NEWLIB -DHAVE_BLKSIZE -DHAVE_FCNTL -DMALLOC_PROVIDED"
 	syscall_dir=syscalls
+	;;
+  *-*-jehanne*)
+	test -z "$jehanne_srcdir" && jehanne_srcdir=`cd ${srcdir}/libc/sys/jehanne; pwd`
+	export jehanne_srcdir
+	default_newlib_io_c99_formats="yes"
+	CC="${CC} -I${jehanne_srcdir}/include"
+	newlib_cflags="${newlib_cflags} -DREENTRANT_SYSCALLS_PROVIDED -DMALLOC_PROVIDED"
+	newlib_cflags="${newlib_cflags} -D_NO_GETLOGIN -D_NO_GETCWD -D_NO_GETPASS -D_NO_GETUT -D_NO_PWRITE -D_NO_PREAD"
+	newlib_cflags="${newlib_cflags} -fno-omit-frame-pointer"
 	;;
   *-*-phoenix*)
 	newlib_cflags="${newlib_cflags} -DMISSING_SYSCALL_NAMES -D_COMPILING_NEWLIB -DHAVE_BLKSIZE -DHAVE_NANOSLEEP"
