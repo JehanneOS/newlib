@@ -22,14 +22,9 @@
 
 #define MAXNAMLEN 127		/* sizeof(struct dirent.d_name)-1 */
 
-struct dirent
-{
-	ino_t		d_ino;
-	char		d_name[MAXNAMLEN+1];
-	unsigned int	d_reclen;
-};
-
-#define _DIRENT_HAVE_D_RECLEN
+#define _LIBPOSIX_H
+#include <posix.h>		/* get dirent structure from posix.h */
+#undef _LIBPOSIX_H
 
 typedef struct {
 	int dd_fd;		/* Directory file. */

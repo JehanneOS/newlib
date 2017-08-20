@@ -250,6 +250,13 @@ getpass(const char *prompt)
 	return POSIX_getpass(errnop, prompt);
 }
 
+int
+getdents (int fd, void *buf, int buf_size)
+{
+	int *errnop = &_REENT->_errno;
+	return libposix_getdents(errnop, fd, buf, buf_size);
+}
+
 #undef pread
 ssize_t
 pread(int fd, void *buf, size_t count, off_t offset)
