@@ -221,3 +221,46 @@ pipe(int fildes[2])
 	int *errnop = &_REENT->_errno;
 	return POSIX_pipe(errnop, fildes);
 }
+
+char*
+getcwd(char *buf, size_t size)
+{
+	int *errnop = &_REENT->_errno;
+	return POSIX_getcwd(errnop, buf, size);
+}
+
+char*
+getlogin(void)
+{
+	int *errnop = &_REENT->_errno;
+	return POSIX_getlogin(errnop);
+}
+
+int
+getlogin_r(char *name, size_t namesize)
+{
+	int *errnop = &_REENT->_errno;
+	return POSIX_getlogin_r(errnop, name, namesize);
+}
+
+char*
+getpass(const char *prompt)
+{
+	int *errnop = &_REENT->_errno;
+	return POSIX_getpass(errnop, prompt);
+}
+
+#undef pread
+ssize_t
+pread(int fd, void *buf, size_t count, off_t offset)
+{
+	int *errnop = &_REENT->_errno;
+	return POSIX_pread(errnop, fd, buf, count, offset);
+}
+#undef pwrite
+ssize_t
+pwrite(int fd, const void *buf, size_t count, off_t offset)
+{
+	int *errnop = &_REENT->_errno;
+	return POSIX_pwrite(errnop, fd, buf, count, offset);
+}
