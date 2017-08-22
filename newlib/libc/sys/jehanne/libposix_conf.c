@@ -77,6 +77,16 @@ struct Dir {
 #define ORCLOSE	0x10		/* or'ed in, remove on close */
 #define OTRUNC	0x0100		/* or'ed in (except for exec), truncate file first */
 
+#define DMDIR		0x80000000	/* mode bit for directories */
+#define DMAPPEND	0x40000000	/* mode bit for append only files */
+#define DMEXCL		0x20000000	/* mode bit for exclusive use files */
+#define DMMOUNT		0x10000000	/* mode bit for mounted channel */
+#define DMAUTH		0x08000000	/* mode bit for authentication file */
+#define DMTMP		0x04000000	/* mode bit for non-backed-up files */
+#define DMREAD		0x4		/* mode bit for read permission */
+#define DMWRITE		0x2		/* mode bit for write permission */
+#define DMEXEC		0x1		/* mode bit for execute permission */
+s
 extern	void	jehanne_sysfatal(const char*, ...);
 
 #include <posix.h>
@@ -116,38 +126,81 @@ stat_reader(void *statp, const Dir *dir)
 static PosixError
 open_translator(int flag, int mode, long *omode, long *cperm)
 {
-	*omode = 0;
 	*cperm = 0;
 
-	switch(flag & O_ACCMODE){
-	case O_RDONLY:
-		*omode |= OREAD;
-		break;
-	case O_WRONLY:
-		*omode |= OWRITE;
-		break;
-	case O_RDWR:
-		*omode |= ORDWR;
-		break;
+	if(omode != nil){
+		*omode = 0;
+		switch(flag & O_ACCMODE){
+		case O_RDONLY:
+			*omode |= OREAD;
+			break;
+		case O_WRONLY:
+			*omode |= OWRITE;
+			break;
+		case O_RDWR:
+			*omode |= ORDWR;
+			break;
+		}
+
+		if(flag & O_EXEC)
+			*omode = OEXEC;
+		else if(flag & O_SEARCH){
+			/* POSIX_open will fail if the file is
+			 * not a directory
+			 */
+			*omode |= (OEXEC|DMDIR);
+		}
+
+		if(flag & O_TRUNC)
+			*omode |= OTRUNC;
+		if(flag & O_CLOEXEC)
+			*omode |= OCEXEC;
 	}
 
-	if(flag & O_EXEC)
-		*omode = OEXEC;
-	else if(flag & O_SEARCH)
-		*omode |= OREAD;
+	/* translate permissions */
+	if(mode & S_IRUSR)
+		*cperm |= OREAD << 6;
+	if(mode & S_IWUSR)
+		*cperm |= OWRITE << 6;
+	if(mode & S_IXUSR)
+		*cperm |= OEXEC << 6;
+	if(mode & S_IRGRP)
+		*cperm |= OREAD << 3;
+	if(mode & S_IWGRP)
+		*cperm |= OWRITE << 3;
+	if(mode & S_IXGRP)
+		*cperm |= OEXEC << 3;
+	if(mode & S_IROTH)
+		*cperm |= OREAD;
+	if(mode & S_IWOTH)
+		*cperm |= OWRITE;
+	if(mode & S_IXOTH)
+		*cperm |= OEXEC;
 
 	if(flag & O_CREAT){
+		if(flag & O_DIRECTORY){
+			/* let's copy NetBSD's behaviour
+			 * see hhttps://stackoverflow.com/questions/45818628/
+			 */
+			return PosixEINVAL;
+		}
 		if(flag & O_EXCL)
-			*cperm = ~mode;
-		else
-			*cperm = mode;
+			*cperm |= DMEXCL;
+	} else {
+		if(flag & O_APPEND)
+			return PosixENOTSUP;
+		if(flag & O_EXCL)
+			return PosixENOTSUP;
+		if(omode != nil){
+			if(flag & O_DIRECTORY){
+				/* POSIX_open will fail if the file is
+				 * not a directory
+				 */
+				*omode |= DMDIR;
+			}
+		}
 	}
 
-	if(flag & O_TRUNC)
-		*omode |= OTRUNC;
-	if(flag & O_CLOEXEC)
-		*omode |= OCEXEC;
-	
 	return 0;
 }
 
