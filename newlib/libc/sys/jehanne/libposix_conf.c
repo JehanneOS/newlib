@@ -211,6 +211,10 @@ default_error_translator(char* error, uintptr_t caller)
 	jehanne_fprint(2, "newlib: %s\n", error);
 	if(caller == ADDRESS(POSIX_open))
 		return PosixEIO;
+	if(caller == ADDRESS(POSIX_chmod))
+		return PosixEPERM;
+	if(caller == ADDRESS(POSIX_fchmod))
+		return PosixEPERM;
 	return PosixEINVAL;
 }
 
