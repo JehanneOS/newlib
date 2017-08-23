@@ -241,6 +241,7 @@ void
 initialize_newlib(void)
 {
 	/* */
+	libposix_define_at_fdcwd(AT_FDCWD);
 	libposix_set_stat_reader(stat_reader);
 	libposix_translate_seek_whence(SEEK_SET, SEEK_CUR, SEEK_END);
 	libposix_translate_open(open_translator);
