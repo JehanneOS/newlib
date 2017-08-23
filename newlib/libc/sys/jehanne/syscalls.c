@@ -251,6 +251,27 @@ getpass(const char *prompt)
 }
 
 int
+mkdir(const char *path, int mode)
+{
+	int *errnop = &_REENT->_errno;
+	return POSIX_mkdir(errnop, path, mode);
+}
+
+int
+chdir(const char *path)
+{
+	int *errnop = &_REENT->_errno;
+	return POSIX_chdir(errnop, path);
+}
+
+int
+fchdir(int fd)
+{
+	int *errnop = &_REENT->_errno;
+	return POSIX_fchdir(errnop, fd);
+}
+
+int
 getdents (int fd, void *buf, int buf_size)
 {
 	int *errnop = &_REENT->_errno;

@@ -211,10 +211,14 @@ default_error_translator(char* error, uintptr_t caller)
 	jehanne_fprint(2, "newlib: %s\n", error);
 	if(caller == ADDRESS(POSIX_open))
 		return PosixEIO;
+	if(caller == ADDRESS(POSIX_chdir))
+		return PosixEACCES;
 	if(caller == ADDRESS(POSIX_chmod))
 		return PosixEPERM;
 	if(caller == ADDRESS(POSIX_fchmodat))
 		return PosixEPERM;
+	if(caller == ADDRESS(POSIX_fchdir))
+		return PosixEACCES;
 	return PosixEINVAL;
 }
 
@@ -394,7 +398,7 @@ initialize_newlib(void)
 	libposix_define_errno(PosixETXTBSY, ETXTBSY);
 	libposix_define_errno(PosixEWOULDBLOCK, EWOULDBLOCK);
 	libposix_define_errno(PosixEXDEV, EXDEV);
-	
+
 	/* let the application override defaults */
 	if(__application_newlib_init != 0)
 		__application_newlib_init();
