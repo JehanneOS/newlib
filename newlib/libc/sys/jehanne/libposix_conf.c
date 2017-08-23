@@ -86,7 +86,7 @@ struct Dir {
 #define DMREAD		0x4		/* mode bit for read permission */
 #define DMWRITE		0x2		/* mode bit for write permission */
 #define DMEXEC		0x1		/* mode bit for execute permission */
-s
+
 extern	void	jehanne_sysfatal(const char*, ...);
 
 #include <posix.h>
@@ -128,7 +128,7 @@ open_translator(int flag, int mode, long *omode, long *cperm)
 {
 	*cperm = 0;
 
-	if(omode != nil){
+	if(omode != NULL){
 		*omode = 0;
 		switch(flag & O_ACCMODE){
 		case O_RDONLY:
@@ -191,7 +191,7 @@ open_translator(int flag, int mode, long *omode, long *cperm)
 			return PosixENOTSUP;
 		if(flag & O_EXCL)
 			return PosixENOTSUP;
-		if(omode != nil){
+		if(omode != NULL){
 			if(flag & O_DIRECTORY){
 				/* POSIX_open will fail if the file is
 				 * not a directory
@@ -213,7 +213,7 @@ default_error_translator(char* error, uintptr_t caller)
 		return PosixEIO;
 	if(caller == ADDRESS(POSIX_chmod))
 		return PosixEPERM;
-	if(caller == ADDRESS(POSIX_fchmod))
+	if(caller == ADDRESS(POSIX_fchmodat))
 		return PosixEPERM;
 	return PosixEINVAL;
 }
