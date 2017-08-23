@@ -18,6 +18,7 @@
 
 /* we cannot include u.h and libc.h due to name collisions */
 
+#define nil			((void*)0)
 typedef long			off_t;
 typedef long			ptrdiff_t;
 typedef unsigned long		uint64_t;
@@ -157,25 +158,27 @@ open_translator(int flag, int mode, long *omode, long *cperm)
 			*omode |= OCEXEC;
 	}
 
-	/* translate permissions */
-	if(mode & S_IRUSR)
-		*cperm |= OREAD << 6;
-	if(mode & S_IWUSR)
-		*cperm |= OWRITE << 6;
-	if(mode & S_IXUSR)
-		*cperm |= OEXEC << 6;
-	if(mode & S_IRGRP)
-		*cperm |= OREAD << 3;
-	if(mode & S_IWGRP)
-		*cperm |= OWRITE << 3;
-	if(mode & S_IXGRP)
-		*cperm |= OEXEC << 3;
-	if(mode & S_IROTH)
-		*cperm |= OREAD;
-	if(mode & S_IWOTH)
-		*cperm |= OWRITE;
-	if(mode & S_IXOTH)
-		*cperm |= OEXEC;
+	if(omode == nil || (flag & O_CREAT) != 0){
+		/* translate permissions */
+		if(mode & S_IRUSR)
+			*cperm |= DMREAD << 6;
+		if(mode & S_IWUSR)
+			*cperm |= DMWRITE << 6;
+		if(mode & S_IXUSR)
+			*cperm |= DMEXEC << 6;
+		if(mode & S_IRGRP)
+			*cperm |= DMREAD << 3;
+		if(mode & S_IWGRP)
+			*cperm |= DMWRITE << 3;
+		if(mode & S_IXGRP)
+			*cperm |= DMEXEC << 3;
+		if(mode & S_IROTH)
+			*cperm |= DMREAD;
+		if(mode & S_IWOTH)
+			*cperm |= DMWRITE;
+		if(mode & S_IXOTH)
+			*cperm |= DMEXEC;
+	}
 
 	if(flag & O_CREAT){
 		if(flag & O_DIRECTORY){
