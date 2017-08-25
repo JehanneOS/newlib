@@ -96,6 +96,7 @@ extern	void	jehanne_sysfatal(const char*, ...);
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <sys/signal.h>
+#include <sys/time.h>
 #define __CYGWIN__	/* needed for O_ACCMODE */
 #include <fcntl.h>
 #undef __CYGWIN__
@@ -225,6 +226,28 @@ default_error_translator(char* error, uintptr_t caller)
 	return PosixEINVAL;
 }
 
+static PosixError
+default_timeval_reader(void *tv, const Tm *time)
+{
+	struct timeval *t = tv;
+
+	t->tv_sec = jehanne_tm2sec(time);
+	t->tv_usec = 0;
+
+	return 0;
+}
+
+static PosixError
+default_timezone_reader(void *tz, const Tm *time)
+{
+	struct timezone *t = tz;
+
+	t->tz_minuteswest = time->tzoff;
+	t->tz_dsttime = 0;
+
+	return 0;
+}
+
 static PosixSignalAction
 signal_trampoline(int signal)
 {
@@ -250,6 +273,8 @@ initialize_newlib(void)
 	/* */
 	libposix_define_at_fdcwd(AT_FDCWD);
 	libposix_set_stat_reader(stat_reader);
+	libposix_set_timeval_reader(default_timeval_reader);
+	libposix_set_timezone_reader(default_timezone_reader);
 	libposix_translate_seek_whence(SEEK_SET, SEEK_CUR, SEEK_END);
 	libposix_translate_open(open_translator);
 	libposix_set_signal_trampoline(signal_trampoline);
