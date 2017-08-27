@@ -276,6 +276,7 @@ initialize_newlib(void)
 	libposix_set_timeval_reader(default_timeval_reader);
 	libposix_set_timezone_reader(default_timezone_reader);
 	libposix_translate_seek_whence(SEEK_SET, SEEK_CUR, SEEK_END);
+	libposix_translate_access_mode(F_OK, R_OK, W_OK, X_OK);
 	libposix_translate_open(open_translator);
 	libposix_set_signal_trampoline(signal_trampoline);
 	libposix_translate_error(default_error_translator, 0);

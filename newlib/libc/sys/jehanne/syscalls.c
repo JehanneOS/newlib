@@ -278,6 +278,13 @@ getdents (int fd, void *buf, int buf_size)
 	return libposix_getdents(errnop, fd, buf, buf_size);
 }
 
+int
+access(const char *path, int amode)
+{
+	int *errnop = &_REENT->_errno;
+	return POSIX_access(errnop, path, amode);
+}
+
 #undef pread
 ssize_t
 pread(int fd, void *buf, size_t count, off_t offset)
