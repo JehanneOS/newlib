@@ -153,6 +153,13 @@ _stat_r(struct _reent *r, const char *file, struct stat *pstat)
 	return POSIX_stat(errnop, file, pstat);
 }
 
+int
+lstat(const char *file, struct stat *pstat)
+{
+	int *errnop = &_REENT->_errno;
+	return POSIX_lstat(errnop, file, pstat);
+}
+
 clock_t
 _times_r(struct _reent *r, struct tms *buf)
 {
@@ -283,6 +290,20 @@ access(const char *path, int amode)
 {
 	int *errnop = &_REENT->_errno;
 	return POSIX_access(errnop, path, amode);
+}
+
+int
+dup(int fildes)
+{
+	int *errnop = &_REENT->_errno;
+	return POSIX_dup(errnop, fildes);
+}
+
+int
+dup2(int fildes, int fildes2)
+{
+	int *errnop = &_REENT->_errno;
+	return POSIX_dup2(errnop, fildes, fildes2);
 }
 
 #undef pread
