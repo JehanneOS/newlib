@@ -306,6 +306,20 @@ dup2(int fildes, int fildes2)
 	return POSIX_dup2(errnop, fildes, fildes2);
 }
 
+int
+readlink(const char *path, char *buf, int bufsize)
+{
+	int *errnop = &_REENT->_errno;
+	return POSIX_readlink(errnop, path, buf, bufsize);
+}
+
+int
+readlinkat(int fd, const char *path, char *buf, int bufsize)
+{
+	int *errnop = &_REENT->_errno;
+	return POSIX_readlinkat(errnop, fd, path, buf, bufsize);
+}
+
 #undef pread
 ssize_t
 pread(int fd, void *buf, size_t count, off_t offset)
