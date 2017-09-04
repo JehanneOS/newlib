@@ -52,7 +52,8 @@ LIBRARIES = $(noinst_LIBRARIES)
 ARFLAGS = cru
 lib_a_AR = $(AR) $(ARFLAGS)
 @MAY_SUPPLY_SYSCALLS_TRUE@am__DEPENDENCIES_1 = syscalls.o \
-@MAY_SUPPLY_SYSCALLS_TRUE@	libposix_conf.o chown.o getrusage.o
+@MAY_SUPPLY_SYSCALLS_TRUE@	libposix_conf.o chown.o getrusage.o \
+@MAY_SUPPLY_SYSCALLS_TRUE@	ids.o
 am_lib_a_OBJECTS = lib_a-getenv_r.$(OBJEXT) lib_a-getenv.$(OBJEXT) \
 	lib_a-malloc.$(OBJEXT) lib_a-mallocr.$(OBJEXT) \
 	lib_a-free.$(OBJEXT) lib_a-freer.$(OBJEXT) \
@@ -177,12 +178,12 @@ INCLUDES = $(NEWLIB_CFLAGS) $(CROSS_CFLAGS) $(TARGET_CFLAGS)
 AM_CCASFLAGS = $(INCLUDES)
 noinst_LIBRARIES = lib.a
 @MAY_SUPPLY_SYSCALLS_FALSE@extra_objs = 
-@MAY_SUPPLY_SYSCALLS_TRUE@extra_objs = syscalls.o libposix_conf.o chown.o getrusage.o
+@MAY_SUPPLY_SYSCALLS_TRUE@extra_objs = syscalls.o libposix_conf.o chown.o getrusage.o ids.o
 lib_a_SOURCES = getenv_r.c getenv.c malloc.c mallocr.c free.c freer.c \
 	calloc.c callocr.c realloc.c reallocr.c
 
 lib_a_LIBADD = $(extra_objs)
-EXTRA_lib_a_SOURCES = libposix_conf.c syscalls.c chown.c getrusage.c
+EXTRA_lib_a_SOURCES = libposix_conf.c syscalls.c chown.c getrusage.c ids.c
 lib_a_DEPENDENCIES = $(extra_objs)
 lib_a_CCASFLAGS = $(AM_CCASFLAGS)
 lib_a_CFLAGS = $(AM_CFLAGS)
@@ -333,6 +334,12 @@ lib_a-getrusage.o: getrusage.c
 
 lib_a-getrusage.obj: getrusage.c
 	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-getrusage.obj `if test -f 'getrusage.c'; then $(CYGPATH_W) 'getrusage.c'; else $(CYGPATH_W) '$(srcdir)/getrusage.c'; fi`
+
+lib_a-ids.o: ids.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-ids.o `test -f 'ids.c' || echo '$(srcdir)/'`ids.c
+
+lib_a-ids.obj: ids.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-ids.obj `if test -f 'ids.c'; then $(CYGPATH_W) 'ids.c'; else $(CYGPATH_W) '$(srcdir)/ids.c'; fi`
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
