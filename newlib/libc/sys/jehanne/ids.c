@@ -107,6 +107,13 @@ getsid(pid_t pid)
 }
 
 pid_t
+getpgrp(void)
+{
+	int *errnop = &_REENT->_errno;
+	return POSIX_getpgrp(errnop);
+}
+
+pid_t
 setsid(void)
 {
 	int *errnop = &_REENT->_errno;
