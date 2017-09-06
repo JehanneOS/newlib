@@ -320,6 +320,13 @@ readlinkat(int fd, const char *path, char *buf, int bufsize)
 	return POSIX_readlinkat(errnop, fd, path, buf, bufsize);
 }
 
+int
+umask(int mask)
+{
+	int *errnop = &_REENT->_errno;
+	return POSIX_umask(errnop, mask);
+}
+
 #undef pread
 ssize_t
 pread(int fd, void *buf, size_t count, off_t offset)
