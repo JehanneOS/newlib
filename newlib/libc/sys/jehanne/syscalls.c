@@ -70,6 +70,13 @@ _execve_r(struct _reent *r, const char * name, char *const * argv, char *const *
 }
 
 int
+_execve(const char * name, char *const * argv, char *const * env)
+{
+	int *errnop = &_REENT->_errno;
+	return POSIX_execve(errnop, name, argv, env);
+}
+
+int
 _fork_r(struct _reent *r)
 {
 	int *errnop = &r->_errno;
