@@ -188,6 +188,13 @@ _wait_r(struct _reent *r, int *status)
 	return POSIX_wait(errnop, status);
 }
 
+int
+_rename_r(struct _reent *r, const char *from, const char *to)
+{
+	int *errnop = &r->_errno;
+	return POSIX_rename(errnop, from, to);
+}
+
 pid_t
 waitpid (pid_t reqpid, int *status, int options)
 {
