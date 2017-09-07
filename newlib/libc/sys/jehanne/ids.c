@@ -93,7 +93,15 @@ setregid(gid_t rgid, gid_t egid)
 	return POSIX_setregid(errnop, rgid, egid);
 }
 
-int setpgid(pid_t pid, pid_t pgid)
+int
+getpgid(pid_t pid)
+{
+	int *errnop = &_REENT->_errno;
+	return POSIX_getpgid(errnop, pid);
+}
+
+int
+setpgid(pid_t pid, pid_t pgid)
 {
 	int *errnop = &_REENT->_errno;
 	return POSIX_setpgid(errnop, pid, pgid);
