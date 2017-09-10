@@ -100,6 +100,7 @@ extern	void	jehanne_sysfatal(const char*, ...);
 #define __CYGWIN__	/* needed for O_ACCMODE */
 #include <fcntl.h>
 #undef __CYGWIN__
+#include <reent.h>
 
 extern void __application_newlib_init(void) __attribute__((weak));
 
@@ -431,4 +432,22 @@ initialize_newlib(void)
 	/* let the application override defaults */
 	if(__application_newlib_init != 0)
 		__application_newlib_init();
+}
+
+int
+sigaction(int sig, const struct sigaction *act, struct sigaction *oact)
+{
+	if(sig <= 0 || sig > SIGUSR2 || sig == SIGKILL){
+		_REENT->_errno = EINVAL;
+		return -1;
+	}
+	if(oact){
+		oact->sa_handler = _REENT->_sig_func[sig];
+		oact->sa_mask = 0;
+		oact->sa_flags = 0;
+	}
+	if(act){
+		_REENT->_sig_func[sig] = act->sa_handler;
+	}
+	return 0;
 }
