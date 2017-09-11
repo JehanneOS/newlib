@@ -98,7 +98,7 @@ typedef struct {
  */
 
 typedef void (*_sig_func_ptr)(int);
-typedef void (*_sigact_func_ptr)(int, siginfo_t *, void * );
+typedef void (*_sig_act_ptr)(int, siginfo_t *, void * );
 
 struct sigaction {
 	int		sa_flags;       /* Special flags to affect behavior of signal */
@@ -106,8 +106,8 @@ struct sigaction {
 					/*   during execution of signal-catching */
 					/*   function. */
 	union {
-		_sig_func_ptr _handler;	/* SIG_DFL, SIG_IGN, or pointer to a function */
-		_sigact_func_ptr _sigaction;
+		_sig_func_ptr	_handler;	/* SIG_DFL, SIG_IGN, or pointer to a function */
+		_sig_act_ptr	_sigaction;
 	} _signal_handlers;
 };
 

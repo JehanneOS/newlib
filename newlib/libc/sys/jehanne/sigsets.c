@@ -23,36 +23,43 @@
 typedef unsigned long sigset_t;
 
 int
-sigfillset(unsigned long *set)
+sigfillset(sigset_t *set)
 {
 	int *errnop = &_REENT->_errno;
 	return POSIX_sigfillset(errnop, set);
 }
 
 int
-sigemptyset(unsigned long *set)
+sigemptyset(sigset_t *set)
 {
 	int *errnop = &_REENT->_errno;
 	return POSIX_sigemptyset(errnop, set);
 }
 
 int
-sigismember(const unsigned long *set, int signo)
+sigismember(const sigset_t *set, int signo)
 {
 	int *errnop = &_REENT->_errno;
 	return POSIX_sigismember(errnop, set, signo);
 }
 
 int
-sigaddset(unsigned long *set, int signo)
+sigaddset(sigset_t *set, int signo)
 {
 	int *errnop = &_REENT->_errno;
 	return POSIX_sigaddset(errnop, set, signo);
 }
 
 int
-sigdelset(unsigned long *set, int signo)
+sigdelset(sigset_t *set, int signo)
 {
 	int *errnop = &_REENT->_errno;
 	return POSIX_sigdelset(errnop, set, signo);
+}
+
+int
+sigprocmask(int how, const sigset_t *set, sigset_t *oset)
+{
+	int *errnop = &_REENT->_errno;
+	return POSIX_sigprocmask(errnop, how, set, oset);
 }
