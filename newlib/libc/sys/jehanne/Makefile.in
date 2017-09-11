@@ -53,7 +53,7 @@ ARFLAGS = cru
 lib_a_AR = $(AR) $(ARFLAGS)
 @MAY_SUPPLY_SYSCALLS_TRUE@am__DEPENDENCIES_1 = syscalls.o \
 @MAY_SUPPLY_SYSCALLS_TRUE@	libposix_conf.o chown.o getrusage.o \
-@MAY_SUPPLY_SYSCALLS_TRUE@	ids.o chmod.o
+@MAY_SUPPLY_SYSCALLS_TRUE@	ids.o chmod.o sigsets.o
 am_lib_a_OBJECTS = lib_a-getenv_r.$(OBJEXT) lib_a-getenv.$(OBJEXT) \
 	lib_a-malloc.$(OBJEXT) lib_a-mallocr.$(OBJEXT) \
 	lib_a-free.$(OBJEXT) lib_a-freer.$(OBJEXT) \
@@ -180,14 +180,14 @@ AM_CCASFLAGS = $(INCLUDES)
 noinst_LIBRARIES = lib.a
 @MAY_SUPPLY_SYSCALLS_FALSE@extra_objs = 
 @MAY_SUPPLY_SYSCALLS_TRUE@extra_objs = syscalls.o libposix_conf.o chown.o getrusage.o ids.o \
-@MAY_SUPPLY_SYSCALLS_TRUE@	chmod.o
+@MAY_SUPPLY_SYSCALLS_TRUE@	chmod.o sigsets.o
 
 lib_a_SOURCES = getenv_r.c getenv.c malloc.c mallocr.c free.c freer.c \
 	calloc.c callocr.c realloc.c reallocr.c environ.c
 
 lib_a_LIBADD = $(extra_objs)
 EXTRA_lib_a_SOURCES = libposix_conf.c syscalls.c chown.c getrusage.c \
-	ids.c chmod.c
+	ids.c chmod.c sigsets.c
 
 lib_a_DEPENDENCIES = $(extra_objs)
 lib_a_CCASFLAGS = $(AM_CCASFLAGS)
@@ -357,6 +357,12 @@ lib_a-chmod.o: chmod.c
 
 lib_a-chmod.obj: chmod.c
 	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-chmod.obj `if test -f 'chmod.c'; then $(CYGPATH_W) 'chmod.c'; else $(CYGPATH_W) '$(srcdir)/chmod.c'; fi`
+
+lib_a-sigsets.o: sigsets.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-sigsets.o `test -f 'sigsets.c' || echo '$(srcdir)/'`sigsets.c
+
+lib_a-sigsets.obj: sigsets.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-sigsets.obj `if test -f 'sigsets.c'; then $(CYGPATH_W) 'sigsets.c'; else $(CYGPATH_W) '$(srcdir)/sigsets.c'; fi`
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
