@@ -232,7 +232,15 @@ int sigqueue (pid_t pid, int signo, const union sigval value);
 #define	SIGLOST 29	/* resource lost (eg, record-lock lost) */
 #define	SIGUSR1 30	/* user defined signal 1 */
 #define	SIGUSR2 31	/* user defined signal 2 */
-#define NSIG	32      /* signal 0 implied */
+
+/* Real-Time Signals Range, P1003.1b-1993, p. 61
+   NOTE: By P1003.1b-1993, this should be at least RTSIG_MAX
+         (which is a minimum of 8) signals.
+ */
+#define SIGRTMIN 32
+#define SIGRTMAX 63
+
+#define NSIG	64      /* signal 0 implied */
 
 #ifdef __cplusplus
 }
