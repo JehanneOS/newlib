@@ -32,8 +32,12 @@ extern "C" {
 #include <sys/_timespec.h>
 #include <sys/_pthreadtypes.h>
 
+#define _LIBPOSIX_H
+#include <posix.h>	/* get libposix defines from posix.h */
+#undef _LIBPOSIX_H
+
 #define	_SIGSET_T_DECLARED
-typedef	unsigned long	sigset_t;
+typedef	PosixSignalMask	sigset_t;
 
 /* sigev_notify values
    NOTE: P1003.1c/D10, p. 34 adds SIGEV_THREAD.  */
@@ -73,11 +77,7 @@ struct sigevent {
 #define SI_ASYNCIO 4    /* Indicates completion of asycnhronous IO */
 #define SI_MESGQ   5    /* Indicates arrival of a message at an empty queue */
 
-typedef struct {
-  int          si_signo;    /* Signal number */
-  int          si_code;     /* Cause of the signal */
-  union sigval si_value;    /* Signal value */
-} siginfo_t;
+#define siginfo_t PosixSignalInfo;
 
 /*  3.3.8 Synchronously Accept a Signal, P1003.1b-1993, p. 76 */
 
@@ -96,10 +96,6 @@ typedef struct {
  *  (2) The fields sa_handler and sa_sigaction may overlap, and a conforming
  *      application should not use both simultaneously.
  */
-
-typedef void (*_sig_func_ptr)(int);
-typedef void (*_sig_act_ptr)(int, siginfo_t *, void * );
-
 struct sigaction {
 	int		sa_flags;       /* Special flags to affect behavior of signal */
 	sigset_t	sa_mask;        /* Additional set of signals to be blocked */
@@ -144,9 +140,9 @@ typedef struct sigaltstack {
 } stack_t;
 
 #if __POSIX_VISIBLE
-#define SIG_SETMASK	0	/* set mask with sigprocmask() */
-#define SIG_BLOCK	1	/* set of signals to block */
-#define SIG_UNBLOCK	2	/* set of signals to, well, unblock */
+#define SIG_SETMASK	PosixSPMSetMask
+#define SIG_BLOCK	PosixSPMBlock
+#define SIG_UNBLOCK	PosixSPMUnblock
 
 int sigprocmask (int how, const sigset_t *set, sigset_t *oset);
 #endif
@@ -198,49 +194,49 @@ int sigqueue (pid_t pid, int signo, const union sigval value);
 
 #endif /* __POSIX_VISIBLE >= 199309 */
 
-#define	SIGHUP	1	/* hangup */
-#define	SIGINT	2	/* interrupt */
-#define	SIGQUIT	3	/* quit */
-#define	SIGILL	4	/* illegal instruction (not reset when caught) */
-#define	SIGTRAP	5	/* trace trap (not reset when caught) */
-#define	SIGIOT	6	/* IOT instruction */
-#define	SIGABRT 6	/* used by abort, replace SIGIOT in the future */
-#define	SIGEMT	7	/* EMT instruction */
-#define	SIGFPE	8	/* floating point exception */
-#define	SIGKILL	9	/* kill (cannot be caught or ignored) */
-#define	SIGBUS	10	/* bus error */
-#define	SIGSEGV	11	/* segmentation violation */
-#define	SIGSYS	12	/* bad argument to system call */
-#define	SIGPIPE	13	/* write on a pipe with no one to read it */
-#define	SIGALRM	14	/* alarm clock */
-#define	SIGTERM	15	/* software termination signal from kill */
-#define	SIGURG	16	/* urgent condition on IO channel */
-#define	SIGSTOP	17	/* sendable stop signal not from tty */
-#define	SIGTSTP	18	/* stop signal from tty */
-#define	SIGCONT	19	/* continue a stopped process */
-#define	SIGCHLD	20	/* to parent on child stop or exit */
-#define	SIGCLD	20	/* System V name for SIGCHLD */
-#define	SIGTTIN	21	/* to readers pgrp upon background tty read */
-#define	SIGTTOU	22	/* like TTIN for output if (tp->t_local&LTOSTOP) */
-#define	SIGIO	23	/* input/output possible signal */
-#define	SIGPOLL	SIGIO	/* System V name for SIGIO */
-#define	SIGXCPU	24	/* exceeded CPU time limit */
-#define	SIGXFSZ	25	/* exceeded file size limit */
-#define	SIGVTALRM 26	/* virtual time alarm */
-#define	SIGPROF	27	/* profiling time alarm */
-#define	SIGWINCH 28	/* window changed */
-#define	SIGLOST 29	/* resource lost (eg, record-lock lost) */
-#define	SIGUSR1 30	/* user defined signal 1 */
-#define	SIGUSR2 31	/* user defined signal 2 */
+#define	SIGHUP		PosixSIGHUP	/* hangup */
+#define	SIGINT		PosixSIGINT	/* interrupt */
+#define	SIGQUIT		PosixSIGQUIT	/* quit */
+#define	SIGILL		PosixSIGILL	/* illegal instruction (not reset when caught) */
+#define	SIGTRAP		PosixSIGTRAP	/* trace trap (not reset when caught) */
+#define	SIGIOT		PosixSIGIOT	/* IOT instruction */
+#define	SIGABRT		PosixSIGABRT	/* used by abort, replace SIGIOT in the future */
+#define	SIGEMT		PosixSIGEMT	/* EMT instruction */
+#define	SIGFPE		PosixSIGFPE	/* floating point exception */
+#define	SIGKILL		PosixSIGKILL	/* kill (cannot be caught or ignored) */
+#define	SIGBUS		PosixSIGBUS	/* bus error */
+#define	SIGSEGV		PosixSIGSEGV	/* segmentation violation */
+#define	SIGSYS		PosixSIGSYS	/* bad argument to system call */
+#define	SIGPIPE		PosixSIGPIPE	/* write on a pipe with no one to read it */
+#define	SIGALRM		PosixSIGALRM	/* alarm clock */
+#define	SIGTERM		PosixSIGTERM	/* software termination signal from kill */
+#define	SIGURG		PosixSIGURG	/* urgent condition on IO channel */
+#define	SIGSTOP		PosixSIGSTOP	/* sendable stop signal not from tty */
+#define	SIGTSTP		PosixSIGTSTP	/* stop signal from tty */
+#define	SIGCONT		PosixSIGCONT	/* continue a stopped process */
+#define	SIGCHLD		PosixSIGCHLD	/* to parent on child stop or exit */
+#define	SIGCLD		PosixSIGCLD	/* System V name for SIGCHLD */
+#define	SIGTTIN		PosixSIGTTIN	/* to readers pgrp upon background tty read */
+#define	SIGTTOU		PosixSIGTTOU	/* like TTIN for output if (tp->t_local&LTOSTOP) */
+#define	SIGIO		PosixSIGIO	/* input/output possible signal */
+#define	SIGPOLL		PosixSIGIO	/* System V name for SIGIO */
+#define	SIGXCPU		PosixSIGXCPU	/* exceeded CPU time limit */
+#define	SIGXFSZ		PosixSIGXFSZ	/* exceeded file size limit */
+#define	SIGVTALRM	PosixSIGVTALRM	/* virtual time alarm */
+#define	SIGPROF		PosixSIGPROF	/* profiling time alarm */
+#define	SIGWINCH	PosixSIGWINCH	/* window changed */
+#define	SIGLOST 	PosixSIGLOST 	/* resource lost (eg, record-lock lost) */
+#define	SIGUSR1 	PosixSIGUSR1 	/* user defined signal 1 */
+#define	SIGUSR2 	PosixSIGUSR2 	/* user defined signal 2 */
 
 /* Real-Time Signals Range, P1003.1b-1993, p. 61
    NOTE: By P1003.1b-1993, this should be at least RTSIG_MAX
          (which is a minimum of 8) signals.
  */
-#define SIGRTMIN 32
-#define SIGRTMAX 63
+#define SIGRTMIN	PosixSIGRTMIN
+#define SIGRTMAX	PosixSIGRTMAX
 
-#define NSIG	64      /* signal 0 implied */
+#define NSIG		64		/* signal 0 implied */
 
 #ifdef __cplusplus
 }
