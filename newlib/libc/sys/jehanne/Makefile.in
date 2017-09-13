@@ -59,7 +59,7 @@ am_lib_a_OBJECTS = lib_a-getenv_r.$(OBJEXT) lib_a-getenv.$(OBJEXT) \
 	lib_a-free.$(OBJEXT) lib_a-freer.$(OBJEXT) \
 	lib_a-calloc.$(OBJEXT) lib_a-callocr.$(OBJEXT) \
 	lib_a-realloc.$(OBJEXT) lib_a-reallocr.$(OBJEXT) \
-	lib_a-environ.$(OBJEXT)
+	lib_a-environ.$(OBJEXT) lib_a-signal.$(OBJEXT)
 lib_a_OBJECTS = $(am_lib_a_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp =
@@ -183,7 +183,7 @@ noinst_LIBRARIES = lib.a
 @MAY_SUPPLY_SYSCALLS_TRUE@	chmod.o sigsets.o
 
 lib_a_SOURCES = getenv_r.c getenv.c malloc.c mallocr.c free.c freer.c \
-	calloc.c callocr.c realloc.c reallocr.c environ.c
+	calloc.c callocr.c realloc.c reallocr.c environ.c signal.c
 
 lib_a_LIBADD = $(extra_objs)
 EXTRA_lib_a_SOURCES = libposix_conf.c syscalls.c chown.c getrusage.c \
@@ -321,6 +321,12 @@ lib_a-environ.o: environ.c
 
 lib_a-environ.obj: environ.c
 	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-environ.obj `if test -f 'environ.c'; then $(CYGPATH_W) 'environ.c'; else $(CYGPATH_W) '$(srcdir)/environ.c'; fi`
+
+lib_a-signal.o: signal.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-signal.o `test -f 'signal.c' || echo '$(srcdir)/'`signal.c
+
+lib_a-signal.obj: signal.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-signal.obj `if test -f 'signal.c'; then $(CYGPATH_W) 'signal.c'; else $(CYGPATH_W) '$(srcdir)/signal.c'; fi`
 
 lib_a-libposix_conf.o: libposix_conf.c
 	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-libposix_conf.o `test -f 'libposix_conf.c' || echo '$(srcdir)/'`libposix_conf.c

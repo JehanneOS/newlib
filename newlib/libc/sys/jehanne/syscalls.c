@@ -43,9 +43,6 @@ newlib(int argc, char *argv[])
 	/* initialize the private reentrancy structure */
 	_impure_ptr = &private_reent;
 
-	/* initialize signal infrastructure */
-	_init_signal_r(_REENT);
-
 	libposix_init(argc, argv, initialize_newlib);
 }
 

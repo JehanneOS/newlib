@@ -249,25 +249,6 @@ default_timezone_reader(void *tz, const Tm *time)
 	return 0;
 }
 
-static PosixSignalAction
-signal_trampoline(int signal)
-{
-	switch(__sigtramp(signal)){
-	case -1: // unknown signal or uninitialized signals
-		jehanne_sysfatal("newlib: error handling signal %d or unknown signal", signal);
-	case 0: // catched
-		return SignalCatched;
-	case 3: // ignored
-		return SignalIgnored;
-	case 1: // default
-		return SignalDefault;
-	case 2: // error
-		return SignalError;
-	default:
-		jehanne_sysfatal("newlib: unexpected PosixSignalAction from signal trampoline: %d", signal);
-	}
-}
-
 void
 initialize_newlib(void)
 {
@@ -279,72 +260,8 @@ initialize_newlib(void)
 	libposix_translate_seek_whence(SEEK_SET, SEEK_CUR, SEEK_END);
 	libposix_translate_access_mode(F_OK, R_OK, W_OK, X_OK);
 	libposix_translate_open(open_translator);
-	libposix_set_signal_trampoline(signal_trampoline);
 	libposix_translate_error(default_error_translator, 0);
 	libposix_set_wait_options(0, WNOHANG, 0);
-
-	/* signals */
-	libposix_define_signal(PosixSIGABRT, SIGABRT);
-	libposix_define_signal(PosixSIGALRM, SIGALRM);
-	libposix_define_signal(PosixSIGBUS, SIGBUS);
-	libposix_define_signal(PosixSIGCHLD, SIGCHLD);
-	libposix_define_signal(PosixSIGCONT, SIGCONT);
-	libposix_define_signal(PosixSIGFPE, SIGFPE);
-	libposix_define_signal(PosixSIGHUP, SIGHUP);
-	libposix_define_signal(PosixSIGILL, SIGILL);
-	libposix_define_signal(PosixSIGINT, SIGINT);
-	libposix_define_signal(PosixSIGKILL, SIGKILL);
-	libposix_define_signal(PosixSIGPIPE, SIGPIPE);
-	libposix_define_signal(PosixSIGQUIT, SIGQUIT);
-	libposix_define_signal(PosixSIGSEGV, SIGSEGV);
-	libposix_define_signal(PosixSIGSTOP, SIGSTOP);
-	libposix_define_signal(PosixSIGTERM, SIGTERM);
-	libposix_define_signal(PosixSIGTSTP, SIGTSTP);
-	libposix_define_signal(PosixSIGTTIN, SIGTTIN);
-	libposix_define_signal(PosixSIGTTOU, SIGTTOU);
-	libposix_define_signal(PosixSIGUSR1, SIGUSR1);
-	libposix_define_signal(PosixSIGUSR2, SIGUSR2);
-	libposix_define_signal(PosixSIGPOLL, SIGPOLL);
-	libposix_define_signal(PosixSIGPROF, SIGPROF);
-	libposix_define_signal(PosixSIGSYS, SIGSYS);
-	libposix_define_signal(PosixSIGTRAP, SIGTRAP);
-	libposix_define_signal(PosixSIGURG, SIGURG);
-	libposix_define_signal(PosixSIGVTALRM, SIGVTALRM);
-	libposix_define_signal(PosixSIGXCPU, SIGXCPU);
-	libposix_define_signal(PosixSIGXFSZ, SIGXFSZ);
-#ifdef SIGIOT
-	libposix_define_signal(PosixSIGIOT, SIGIOT);
-#endif
-#ifdef SIGEMT
-	libposix_define_signal(PosixSIGEMT, SIGEMT);
-#endif
-#ifdef SIGSTKFLT
-	libposix_define_signal(PosixSIGSTKFLT, SIGSTKFLT);
-#endif
-#ifdef SIGIO
-	libposix_define_signal(PosixSIGIO, SIGIO);
-#endif
-#ifdef SIGCLD
-	libposix_define_signal(PosixSIGCLD, SIGCLD);
-#endif
-#ifdef SIGPWR
-	libposix_define_signal(PosixSIGPWR, SIGPWR);
-#endif
-#ifdef SIGINFO
-	libposix_define_signal(PosixSIGINFO, SIGINFO);
-#endif
-#ifdef SIGLOST
-	libposix_define_signal(PosixSIGLOST, SIGLOST);
-#endif
-#ifdef SIGWINCH
-	libposix_define_signal(PosixSIGWINCH, SIGWINCH);
-#endif
-#ifdef SIGUNUSED
-	libposix_define_signal(PosixSIGUNUSED, SIGUNUSED);
-#endif
-#if defined(SIGRTMIN) && defined(SIGRTMAX)
-	libposix_define_realtime_signals(SIGRTMIN, SIGRTMAX);
-#endif
 
 	/* error numbers */
 	libposix_define_errno(PosixE2BIG, E2BIG);

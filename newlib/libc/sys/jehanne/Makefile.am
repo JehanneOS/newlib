@@ -12,7 +12,7 @@ extra_objs =
 endif
  
 lib_a_SOURCES = getenv_r.c getenv.c malloc.c mallocr.c free.c freer.c \
-	calloc.c callocr.c realloc.c reallocr.c environ.c
+	calloc.c callocr.c realloc.c reallocr.c environ.c signal.c
 
 lib_a_LIBADD = $(extra_objs)
 EXTRA_lib_a_SOURCES = libposix_conf.c syscalls.c chown.c getrusage.c \
