@@ -50,24 +50,6 @@ typedef	PosixSignalMask	sigset_t;
 #define SIGEV_THREAD 3  /* A notification function shall be called to */
                         /*   perform notification. */
 
-/*  Signal Generation and Delivery, P1003.1b-1993, p. 63
-    NOTE: P1003.1c/D10, p. 34 adds sigev_notify_function and
-          sigev_notify_attributes to the sigevent structure.  */
-
-union sigval {
-	int    sival_int;    /* Integer signal value */
-	void  *sival_ptr;    /* Pointer signal value */
-};
-
-struct sigevent {
-	int		sigev_notify;               /* Notification type */
-	int		sigev_signo;                /* Signal number */
-	union sigval	sigev_value;                /* Signal value */
-	void		(*sigev_notify_function)( union sigval );
-                                               /* Notification function */
-	pthread_attr_t	*sigev_notify_attributes;    /* Notification Attributes */
-};
-
 /* Signal Actions, P1003.1b-1993, p. 64 */
 /* si_code values, p. 66 */
 
@@ -77,7 +59,7 @@ struct sigevent {
 #define SI_ASYNCIO 4    /* Indicates completion of asycnhronous IO */
 #define SI_MESGQ   5    /* Indicates arrival of a message at an empty queue */
 
-#define siginfo_t PosixSignalInfo;
+#define siginfo_t PosixSignalInfo
 
 /*  3.3.8 Synchronously Accept a Signal, P1003.1b-1993, p. 76 */
 
@@ -88,27 +70,6 @@ struct sigevent {
 #define SA_ONSTACK	4	/* Signal delivery will be on a separate stack. */
 #endif
 
-/* struct sigaction notes from POSIX:
- *
- *  (1) Routines stored in sa_handler should take a single int as
- *      their argument although the POSIX standard does not require this.
- *      This is not longer true since at least POSIX.1-2008
- *  (2) The fields sa_handler and sa_sigaction may overlap, and a conforming
- *      application should not use both simultaneously.
- */
-struct sigaction {
-	int		sa_flags;       /* Special flags to affect behavior of signal */
-	sigset_t	sa_mask;        /* Additional set of signals to be blocked */
-					/*   during execution of signal-catching */
-					/*   function. */
-	union {
-		_sig_func_ptr	_handler;	/* SIG_DFL, SIG_IGN, or pointer to a function */
-		_sig_act_ptr	_sigaction;
-	} _signal_handlers;
-};
-
-#define sa_handler    _signal_handlers._handler
-#define sa_sigaction  _signal_handlers._sigaction
 
 #if __BSD_VISIBLE || __XSI_VISIBLE >= 4 || __POSIX_VISIBLE >= 200809
 /*
