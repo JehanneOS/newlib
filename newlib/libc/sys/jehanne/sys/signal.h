@@ -53,11 +53,11 @@ typedef	PosixSignalMask	sigset_t;
 /* Signal Actions, P1003.1b-1993, p. 64 */
 /* si_code values, p. 66 */
 
-#define SI_USER    1    /* Sent by a user. kill(), abort(), etc */
-#define SI_QUEUE   2    /* Sent by sigqueue() */
-#define SI_TIMER   3    /* Sent by expiration of a timer_settime() timer */
-#define SI_ASYNCIO 4    /* Indicates completion of asycnhronous IO */
-#define SI_MESGQ   5    /* Indicates arrival of a message at an empty queue */
+#define SI_USER    PosixSIUser		/* Sent by a user. kill(), abort(), etc */
+#define SI_QUEUE   PosixSIQueue		/* Sent by sigqueue() */
+#define SI_TIMER   PosixSITimer		/* Sent by expiration of a timer_settime() timer */
+#define SI_ASYNCIO PosixSIAsyncIO	/* Indicates completion of asycnhronous IO */
+#define SI_MESGQ   PosixSIMsgQueued	/* Indicates arrival of a message at an empty queue */
 
 #define siginfo_t PosixSignalInfo
 
