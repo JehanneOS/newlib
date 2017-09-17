@@ -26,10 +26,3 @@ signal(int signo, PosixSigHandler handler)
 	int *errnop = &_REENT->_errno;
 	return POSIX_signal(errnop, signo, handler);
 }
-
-int
-raise(int signo)
-{
-	int *errnop = &_REENT->_errno;
-	return POSIX_kill(errnop, getpid(), signo);
-}
