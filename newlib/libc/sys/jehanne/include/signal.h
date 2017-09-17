@@ -21,7 +21,17 @@ typedef PosixSigHandler sighandler_t;	/* glibc naming */
 
 struct _reent;
 
-PosixSigHandler signal(int signo, PosixSigHandler handler);
+PosixSigHandler sysv_signal(int signo, PosixSigHandler handler);
+PosixSigHandler bsd_signal(int signo, PosixSigHandler handler);
+
+#define ssignal(signo, handler)	bsd_signal(signo, handler)
+
+#ifdef _XOPEN_SOURCE
+# define signal(signo, handler)	sysv_signal(signo, handler)
+#else
+# define signal(signo, handler)	bsd_signal(signo, handler)
+#endif
+
 int raise(int signo);
 void psignal(int signo, const char *s);
 

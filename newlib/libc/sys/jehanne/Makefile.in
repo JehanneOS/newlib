@@ -187,7 +187,7 @@ lib_a_SOURCES = getenv_r.c getenv.c malloc.c mallocr.c free.c freer.c \
 
 lib_a_LIBADD = $(extra_objs)
 EXTRA_lib_a_SOURCES = libposix_conf.c syscalls.c chown.c getrusage.c \
-	ids.c chmod.c sigsets.c
+	ids.c chmod.c sigsets.c sigaction.c
 
 lib_a_DEPENDENCIES = $(extra_objs)
 lib_a_CCASFLAGS = $(AM_CCASFLAGS)
@@ -369,6 +369,12 @@ lib_a-sigsets.o: sigsets.c
 
 lib_a-sigsets.obj: sigsets.c
 	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-sigsets.obj `if test -f 'sigsets.c'; then $(CYGPATH_W) 'sigsets.c'; else $(CYGPATH_W) '$(srcdir)/sigsets.c'; fi`
+
+lib_a-sigaction.o: sigaction.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-sigaction.o `test -f 'sigaction.c' || echo '$(srcdir)/'`sigaction.c
+
+lib_a-sigaction.obj: sigaction.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-sigaction.obj `if test -f 'sigaction.c'; then $(CYGPATH_W) 'sigaction.c'; else $(CYGPATH_W) '$(srcdir)/sigaction.c'; fi`
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \

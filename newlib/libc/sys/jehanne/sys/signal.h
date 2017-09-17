@@ -63,11 +63,15 @@ typedef	PosixSignalMask	sigset_t;
 
 /*  3.3.8 Synchronously Accept a Signal, P1003.1b-1993, p. 76 */
 
-#define SA_NOCLDSTOP	1	/* Do not generate SIGCHLD when children stop */
-#define SA_SIGINFO	2	/* Invoke the signal catching function with */
-				/*   three arguments instead of one. */
+#define SA_NOCLDSTOP	PosixSAFNoChildrenStop
+#define SA_RESETHAND	PosixSAFResetHandler
+#define SA_RESTART	PosixSAFRestart
+#define SA_SIGINFO	PosixSAFSigInfo
+#define SA_NOCLDWAIT	PosixSAFNoChildrenWait
+#define	SA_NODEFER	PosixSAFNoDefer
+
 #if __BSD_VISIBLE || __XSI_VISIBLE >= 4 || __POSIX_VISIBLE >= 200809
-#define SA_ONSTACK	4	/* Signal delivery will be on a separate stack. */
+#define SA_ONSTACK	PosixSAFOnStack	/* Signal delivery will be on a separate stack. */
 #endif
 
 
@@ -86,8 +90,8 @@ typedef	PosixSignalMask	sigset_t;
 /*
  * Possible values for ss_flags in stack_t below.
  */
-#define	SS_ONSTACK	0x1
-#define	SS_DISABLE	0x2
+#define	SS_ONSTACK	PosixSAFOnStack
+#define	SS_DISABLE	PosixSAFDisable
 
 #endif
 

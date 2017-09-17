@@ -20,32 +20,9 @@
 #include <posix.h>
 #include <reent.h>
 
-PosixSigHandler
-sysv_signal(int signo, PosixSigHandler handler)
+int
+sigaction(int signo, const struct sigaction *act, struct sigaction *old)
 {
-	struct sigaction sa, old;
 	int *errnop = &_REENT->_errno;
-
-	sa.sa_flags = 0;
-	sa.sa_handler = handler;
-	if(POSIX_sigemptyset(errnop, &sa.sa_mask) != 0
-	|| POSIX_sigaction(errnop, signo, &sa, &old) != 0)
-		return (PosixSigHandler)-1;
-
-	return old.sa_handler;
-}
-
-PosixSigHandler
-bsd_signal(int signo, PosixSigHandler handler)
-{
-	struct sigaction sa, old;
-	int *errnop = &_REENT->_errno;
-
-	sa.sa_flags = PosixSAFRestart;
-	sa.sa_handler = handler;
-	if(POSIX_sigemptyset(errnop, &sa.sa_mask) != 0
-	|| POSIX_sigaction(errnop, signo, &sa, &old) != 0)
-		return (PosixSigHandler)-1;
-
-	return old.sa_handler;
+	return POSIX_sigaction(errnop, signo, act, old);
 }
