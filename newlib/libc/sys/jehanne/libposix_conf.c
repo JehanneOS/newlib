@@ -350,21 +350,3 @@ initialize_newlib(void)
 	if(__application_newlib_init != 0)
 		__application_newlib_init();
 }
-
-int
-sigaction(int sig, const struct sigaction *act, struct sigaction *oact)
-{
-	if(sig <= 0 || sig > SIGUSR2 || sig == SIGKILL){
-		_REENT->_errno = EINVAL;
-		return -1;
-	}
-	if(oact){
-		oact->sa_handler = _REENT->_sig_func[sig];
-		oact->sa_mask = 0;
-		oact->sa_flags = 0;
-	}
-	if(act){
-		_REENT->_sig_func[sig] = act->sa_handler;
-	}
-	return 0;
-}
