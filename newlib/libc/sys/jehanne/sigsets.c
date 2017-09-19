@@ -58,6 +58,13 @@ sigdelset(sigset_t *set, int signo)
 }
 
 int
+sigpending(sigset_t *set)
+{
+	int *errnop = &_REENT->_errno;
+	return POSIX_sigpending(errnop, set);
+}
+
+int
 sigprocmask(int how, const sigset_t *set, sigset_t *oset)
 {
 	int *errnop = &_REENT->_errno;
