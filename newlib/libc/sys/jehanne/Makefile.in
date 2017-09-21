@@ -54,7 +54,8 @@ lib_a_AR = $(AR) $(ARFLAGS)
 @MAY_SUPPLY_SYSCALLS_TRUE@am__DEPENDENCIES_1 = syscalls.o \
 @MAY_SUPPLY_SYSCALLS_TRUE@	libposix_conf.o chown.o getrusage.o \
 @MAY_SUPPLY_SYSCALLS_TRUE@	ids.o chmod.o sigsets.o sigaction.o \
-@MAY_SUPPLY_SYSCALLS_TRUE@	sigsuspend.o
+@MAY_SUPPLY_SYSCALLS_TRUE@	sigsuspend.o sigwaitinfo.o \
+@MAY_SUPPLY_SYSCALLS_TRUE@	sigtimedwait.o sigwait.o alarm.o
 am_lib_a_OBJECTS = lib_a-getenv_r.$(OBJEXT) lib_a-getenv.$(OBJEXT) \
 	lib_a-malloc.$(OBJEXT) lib_a-mallocr.$(OBJEXT) \
 	lib_a-free.$(OBJEXT) lib_a-freer.$(OBJEXT) \
@@ -181,14 +182,16 @@ AM_CCASFLAGS = $(INCLUDES)
 noinst_LIBRARIES = lib.a
 @MAY_SUPPLY_SYSCALLS_FALSE@extra_objs = 
 @MAY_SUPPLY_SYSCALLS_TRUE@extra_objs = syscalls.o libposix_conf.o chown.o getrusage.o ids.o \
-@MAY_SUPPLY_SYSCALLS_TRUE@	chmod.o sigsets.o sigaction.o sigsuspend.o
+@MAY_SUPPLY_SYSCALLS_TRUE@	chmod.o sigsets.o sigaction.o sigsuspend.o sigwaitinfo.o \
+@MAY_SUPPLY_SYSCALLS_TRUE@	sigtimedwait.o sigwait.o alarm.o
 
 lib_a_SOURCES = getenv_r.c getenv.c malloc.c mallocr.c free.c freer.c \
 	calloc.c callocr.c realloc.c reallocr.c environ.c signal.c
 
 lib_a_LIBADD = $(extra_objs)
 EXTRA_lib_a_SOURCES = libposix_conf.c syscalls.c chown.c getrusage.c \
-	ids.c chmod.c sigsets.c sigaction.c sigsuspend.c
+	ids.c chmod.c sigsets.c sigaction.c sigsuspend.c sigwaitinfo.c \
+	sigtimedwait.c sigwait.c alarm.c
 
 lib_a_DEPENDENCIES = $(extra_objs)
 lib_a_CCASFLAGS = $(AM_CCASFLAGS)
@@ -382,6 +385,30 @@ lib_a-sigsuspend.o: sigsuspend.c
 
 lib_a-sigsuspend.obj: sigsuspend.c
 	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-sigsuspend.obj `if test -f 'sigsuspend.c'; then $(CYGPATH_W) 'sigsuspend.c'; else $(CYGPATH_W) '$(srcdir)/sigsuspend.c'; fi`
+
+lib_a-sigwaitinfo.o: sigwaitinfo.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-sigwaitinfo.o `test -f 'sigwaitinfo.c' || echo '$(srcdir)/'`sigwaitinfo.c
+
+lib_a-sigwaitinfo.obj: sigwaitinfo.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-sigwaitinfo.obj `if test -f 'sigwaitinfo.c'; then $(CYGPATH_W) 'sigwaitinfo.c'; else $(CYGPATH_W) '$(srcdir)/sigwaitinfo.c'; fi`
+
+lib_a-sigtimedwait.o: sigtimedwait.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-sigtimedwait.o `test -f 'sigtimedwait.c' || echo '$(srcdir)/'`sigtimedwait.c
+
+lib_a-sigtimedwait.obj: sigtimedwait.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-sigtimedwait.obj `if test -f 'sigtimedwait.c'; then $(CYGPATH_W) 'sigtimedwait.c'; else $(CYGPATH_W) '$(srcdir)/sigtimedwait.c'; fi`
+
+lib_a-sigwait.o: sigwait.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-sigwait.o `test -f 'sigwait.c' || echo '$(srcdir)/'`sigwait.c
+
+lib_a-sigwait.obj: sigwait.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-sigwait.obj `if test -f 'sigwait.c'; then $(CYGPATH_W) 'sigwait.c'; else $(CYGPATH_W) '$(srcdir)/sigwait.c'; fi`
+
+lib_a-alarm.o: alarm.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-alarm.o `test -f 'alarm.c' || echo '$(srcdir)/'`alarm.c
+
+lib_a-alarm.obj: alarm.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-alarm.obj `if test -f 'alarm.c'; then $(CYGPATH_W) 'alarm.c'; else $(CYGPATH_W) '$(srcdir)/alarm.c'; fi`
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
