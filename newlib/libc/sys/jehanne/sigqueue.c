@@ -21,13 +21,8 @@
 #include <reent.h>
 
 int
-sigwait(const PosixSignalMask *set, int *sig)
+sigqueue(pid_t pid, int signo, const union sigval value)
 {
-	int err;
-	PosixSignalInfo info;
-	if(POSIX_sigtimedwait(&err, set, &info, nil) > 0){
-		*sig = info.si_signo;
-		return 0;
-	}
-	return err;
+	int *errnop = &_REENT->_errno;
+	return POSIX_sigqueue(errnop, pid, signo, value);
 }
