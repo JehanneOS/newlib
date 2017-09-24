@@ -22,7 +22,7 @@ extern "C" {
 #endif
 #define _SETJMP_H_
 
-typedef	uintptr_t jmp_buf[8];	/* we use newlib's x86_64 functions */
+typedef	unsigned long jmp_buf[8];	/* we use newlib's x86_64 functions */
 
 #include <signal.h> /* for sigset_t and sigprocmask */
 
