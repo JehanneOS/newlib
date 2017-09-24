@@ -7,7 +7,7 @@ noinst_LIBRARIES = lib.a
 if MAY_SUPPLY_SYSCALLS
 extra_objs = syscalls.o libposix_conf.o chown.o getrusage.o ids.o \
 	chmod.o sigsets.o sigaction.o sigsuspend.o sigwaitinfo.o \
-	sigtimedwait.o sigwait.o alarm.o
+	sigtimedwait.o sigwait.o alarm.o sigqueue.o
 else
 extra_objs =
 endif
@@ -18,7 +18,7 @@ lib_a_SOURCES = getenv_r.c getenv.c malloc.c mallocr.c free.c freer.c \
 lib_a_LIBADD = $(extra_objs)
 EXTRA_lib_a_SOURCES = libposix_conf.c syscalls.c chown.c getrusage.c \
 	ids.c chmod.c sigsets.c sigaction.c sigsuspend.c sigwaitinfo.c \
-	sigtimedwait.c sigwait.c alarm.c
+	sigtimedwait.c sigwait.c alarm.c sigqueue.c
 lib_a_DEPENDENCIES = $(extra_objs)
 lib_a_CCASFLAGS = $(AM_CCASFLAGS)
 lib_a_CFLAGS = $(AM_CFLAGS)
