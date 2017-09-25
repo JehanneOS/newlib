@@ -110,6 +110,11 @@ __stat_reader(struct stat *s, const Dir *d)
 	s->st_dev = d->dev;
 	s->st_ino = d->qid.path;
 	s->st_mode = d->mode;
+	/* we have to map types to UNIX */
+	if(d->mode & DMDIR)
+		s->st_mode |= _IFDIR;
+	else
+		s->st_mode |= _IFREG;	/* UNIX lack fantasy :-) */
 	s->st_nlink = 1;
 	s->st_uid = 1;
 	s->st_gid = 1;
@@ -185,7 +190,7 @@ open_translator(int flag, int mode, long *omode, long *cperm)
 	if(flag & O_CREAT){
 		if(flag & O_DIRECTORY){
 			/* let's copy NetBSD's behaviour
-			 * see hhttps://stackoverflow.com/questions/45818628/
+			 * see https://stackoverflow.com/questions/45818628/
 			 */
 			return PosixEINVAL;
 		}
