@@ -213,6 +213,13 @@ _gettimeofday_r(struct _reent *r, struct timeval *p, void *z)
 	return POSIX_gettimeofday(errnop, p, z);
 }
 
+int
+_fcntl_r(struct _reent *r, int fd, int cmd, int arg)
+{
+	int *errnop = &r->_errno;
+	return POSIX_fcntl(errnop, fd, cmd, arg);
+}
+
 unsigned int
 sleep(unsigned int seconds)
 {

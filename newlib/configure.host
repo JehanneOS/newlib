@@ -603,6 +603,7 @@ case "${host}" in
 	CC="${CC} -I${jehanne_srcdir}/include"
 	newlib_cflags="${newlib_cflags} -DREENTRANT_SYSCALLS_PROVIDED -DMALLOC_PROVIDED -DSIGNAL_PROVIDED"
 	newlib_cflags="${newlib_cflags} -D_NO_GETLOGIN -D_NO_GETCWD -D_NO_GETPASS -D_NO_GETUT -D_NO_PWRITE -D_NO_PREAD"
+	newlib_cflags="${newlib_cflags} -DHAVE_FCNTL"
 	newlib_cflags="${newlib_cflags} -fno-omit-frame-pointer"
 	;;
   *-*-phoenix*)
