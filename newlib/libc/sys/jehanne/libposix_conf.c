@@ -355,3 +355,35 @@ initialize_newlib(void)
 	if(__application_newlib_init != 0)
 		__application_newlib_init();
 }
+
+/* _fcntl_r is here to access <fcntl.h> */
+int
+_fcntl_r(struct _reent *r, int fd, int cmd, int arg)
+{
+	int *errnop = &r->_errno;
+	PosixFDCmds pcmd;
+	switch(cmd){
+	case F_DUPFD:
+		pcmd = PosixFDCDupFD;
+		break;
+	case F_DUPFD_CLOEXEC:
+		pcmd = PosixFDCDupFDCloseOnExec;
+		break;
+	case F_GETFD:
+		pcmd = PosixFDCGetFD;
+		break;
+	case F_SETFD:
+		pcmd = PosixFDCSetFD;
+		break;
+	case F_GETFL:
+		pcmd = PosixFDCGetFL;
+		break;
+	case F_SETFL:
+		pcmd = PosixFDCSetFL;
+		break;
+	default:
+		*errnop = EINVAL;
+		return -1;
+	}
+	return POSIX_fcntl(errnop, fd, pcmd, arg);
+}
