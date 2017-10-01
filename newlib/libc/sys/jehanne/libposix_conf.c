@@ -262,11 +262,9 @@ on_process_disposition(int status)
 {
 	extern void __call_exitprocs (int, void*);
 
-	fflush(NULL);
-
 	__call_exitprocs(status, NULL);
-	if (_GLOBAL_REENT->__cleanup)
-		(*_GLOBAL_REENT->__cleanup) (_GLOBAL_REENT);
+	if (_REENT->__cleanup)
+		(*_REENT->__cleanup) (_REENT);
 }
 
 void
