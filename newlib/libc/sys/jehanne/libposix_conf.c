@@ -113,7 +113,10 @@ __stat_reader(struct stat *s, const Dir *d)
 	/* we have to map types to UNIX */
 	if(d->mode & DMDIR)
 		s->st_mode |= _IFDIR;
-	else
+	else if(strcmp("cons", d->name) == 0 || strstr(d->name, "tty") != nil){
+		/* newlib expect consoles to be character devices */
+		s->st_mode |= _IFCHR;
+	} else
 		s->st_mode |= _IFREG;	/* UNIX lack fantasy :-) */
 	s->st_nlink = 1;
 	s->st_uid = 1;
@@ -255,6 +258,18 @@ default_timezone_reader(void *tz, const Tm *time)
 }
 
 void
+on_process_disposition(int status)
+{
+	extern void __call_exitprocs (int, void*);
+
+	fflush(NULL);
+
+	__call_exitprocs(status, NULL);
+	if (_GLOBAL_REENT->__cleanup)
+		(*_GLOBAL_REENT->__cleanup) (_GLOBAL_REENT);
+}
+
+void
 initialize_newlib(void)
 {
 	/* */
@@ -267,6 +282,7 @@ initialize_newlib(void)
 	libposix_translate_open(open_translator);
 	libposix_translate_error(default_error_translator, 0);
 	libposix_set_wait_options(0, WNOHANG, 0);
+	libposix_on_process_disposition(on_process_disposition);
 
 	/* error numbers */
 	libposix_define_errno(PosixE2BIG, E2BIG);
@@ -360,8 +376,13 @@ initialize_newlib(void)
 int
 _fcntl_r(struct _reent *r, int fd, int cmd, int arg)
 {
+extern	int	jehanne_print(const char*, ...);
+extern	uintptr_t	jehanne_getcallerpc(void);
+	jehanne_fprint(2, "_fcntl_r(%d, %d, %d) from %#p\n", fd, cmd, arg, jehanne_getcallerpc());
+
 	int *errnop = &r->_errno;
 	PosixFDCmds pcmd;
+	int tmp;
 	switch(cmd){
 	case F_DUPFD:
 		pcmd = PosixFDCDupFD;
@@ -370,14 +391,23 @@ _fcntl_r(struct _reent *r, int fd, int cmd, int arg)
 		pcmd = PosixFDCDupFDCloseOnExec;
 		break;
 	case F_GETFD:
-		pcmd = PosixFDCGetFD;
-		break;
+		if(POSIX_fcntl(errnop, fd, PosixFDCGetFD, arg))
+			return O_CLOEXEC;
+		return 0;
 	case F_SETFD:
 		pcmd = PosixFDCSetFD;
 		break;
 	case F_GETFL:
-		pcmd = PosixFDCGetFL;
-		break;
+		tmp = POSIX_fcntl(errnop, fd, PosixFDCGetFL, arg);
+		if(tmp < 0)
+			return -1;
+		if((tmp & ORDWR) == ORDWR)
+			return O_RDWR;
+		if(tmp & OREAD)
+			return O_RDONLY;
+		if(tmp & OWRITE)
+			return O_WRONLY;
+		return 0;
 	case F_SETFL:
 		pcmd = PosixFDCSetFL;
 		break;
