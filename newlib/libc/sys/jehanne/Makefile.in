@@ -63,7 +63,8 @@ am_lib_a_OBJECTS = lib_a-getenv_r.$(OBJEXT) lib_a-getenv.$(OBJEXT) \
 	lib_a-calloc.$(OBJEXT) lib_a-callocr.$(OBJEXT) \
 	lib_a-realloc.$(OBJEXT) lib_a-reallocr.$(OBJEXT) \
 	lib_a-environ.$(OBJEXT) lib_a-signal.$(OBJEXT) \
-	lib_a-sysfcntl.$(OBJEXT) lib_a-exit.$(OBJEXT)
+	lib_a-sysfcntl.$(OBJEXT) lib_a-exit.$(OBJEXT) \
+	lib_a-setenv_r.$(OBJEXT)
 lib_a_OBJECTS = $(am_lib_a_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp =
@@ -190,7 +191,7 @@ noinst_LIBRARIES = lib.a
 
 lib_a_SOURCES = getenv_r.c getenv.c malloc.c mallocr.c free.c freer.c \
 	calloc.c callocr.c realloc.c reallocr.c environ.c signal.c \
-	sysfcntl.c exit.c
+	sysfcntl.c exit.c setenv_r.c
 
 lib_a_LIBADD = $(extra_objs)
 EXTRA_lib_a_SOURCES = libposix_conf.c syscalls.c chown.c getrusage.c \
@@ -348,6 +349,12 @@ lib_a-exit.o: exit.c
 
 lib_a-exit.obj: exit.c
 	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-exit.obj `if test -f 'exit.c'; then $(CYGPATH_W) 'exit.c'; else $(CYGPATH_W) '$(srcdir)/exit.c'; fi`
+
+lib_a-setenv_r.o: setenv_r.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-setenv_r.o `test -f 'setenv_r.c' || echo '$(srcdir)/'`setenv_r.c
+
+lib_a-setenv_r.obj: setenv_r.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-setenv_r.obj `if test -f 'setenv_r.c'; then $(CYGPATH_W) 'setenv_r.c'; else $(CYGPATH_W) '$(srcdir)/setenv_r.c'; fi`
 
 lib_a-libposix_conf.o: libposix_conf.c
 	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-libposix_conf.o `test -f 'libposix_conf.c' || echo '$(srcdir)/'`libposix_conf.c
