@@ -53,6 +53,13 @@ typedef	PosixSignalMask	sigset_t;
 /* Signal Actions, P1003.1b-1993, p. 64 */
 /* si_code values, p. 66 */
 
+#define CLD_EXITED	PosixSIChildExited	/* On SIGCHLD */
+#define CLD_KILLED	PosixSIChildKilled
+#define CLD_DUMPED	PosixSIChildKilled
+#define CLD_TRAPPED	PosixSIChildTrapped
+#define CLD_STOPPED	PosixSIChildStopped
+#define CLD_CONTINUED	PosixSIChildContinued
+
 #define SI_USER    PosixSIUser		/* Sent by a user. kill(), abort(), etc */
 #define SI_QUEUE   PosixSIQueue		/* Sent by sigqueue() */
 #define SI_TIMER   PosixSITimer		/* Sent by expiration of a timer_settime() timer */
