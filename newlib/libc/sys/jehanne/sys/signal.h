@@ -53,6 +53,9 @@ typedef	PosixSignalMask	sigset_t;
 /* Signal Actions, P1003.1b-1993, p. 64 */
 /* si_code values, p. 66 */
 
+#define SEGV_MAPERR	PosixSIFaultMapError
+#define SEGV_ACCERR	PosixSIFaultAccessError
+
 #define CLD_EXITED	PosixSIChildExited	/* On SIGCHLD */
 #define CLD_KILLED	PosixSIChildKilled
 #define CLD_DUMPED	PosixSIChildKilled
