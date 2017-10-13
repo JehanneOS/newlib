@@ -232,6 +232,9 @@ default_error_translator(char* error, uintptr_t caller)
 		return PosixEPERM;
 	if(caller == ADDRESS(POSIX_fchdir))
 		return PosixEACCES;
+	PosixError e = libposix_translate_kernel_errors(error);
+	if(e != 0)
+		return e;
 	return PosixEINVAL;
 }
 
