@@ -222,6 +222,9 @@ static PosixError
 default_error_translator(char* error, uintptr_t caller)
 {
 	jehanne_fprint(2, "newlib: %s\n", error);
+	PosixError e = libposix_translate_kernel_errors(error);
+	if(e != 0)
+		return e;
 	if(caller == ADDRESS(POSIX_open))
 		return PosixEIO;
 	if(caller == ADDRESS(POSIX_chdir))
@@ -232,9 +235,6 @@ default_error_translator(char* error, uintptr_t caller)
 		return PosixEPERM;
 	if(caller == ADDRESS(POSIX_fchdir))
 		return PosixEACCES;
-	PosixError e = libposix_translate_kernel_errors(error);
-	if(e != 0)
-		return e;
 	return PosixEINVAL;
 }
 
@@ -377,10 +377,11 @@ initialize_newlib(void)
 int
 _fcntl_r(struct _reent *r, int fd, int cmd, int arg)
 {
+/*
 extern	int	jehanne_print(const char*, ...);
 extern	uintptr_t	jehanne_getcallerpc(void);
-	jehanne_fprint(2, "_fcntl_r(%d, %d, %d) from %#p\n", fd, cmd, arg, jehanne_getcallerpc());
-
+jehanne_fprint(2, "_fcntl_r(%d, %d, %d) from %#p\n", fd, cmd, arg, jehanne_getcallerpc());
+*/
 	int *errnop = &r->_errno;
 	PosixFDCmds pcmd;
 	int tmp;
