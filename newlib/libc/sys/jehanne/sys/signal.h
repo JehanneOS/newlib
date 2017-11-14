@@ -190,7 +190,7 @@ int sigqueue (pid_t pid, int signo, const union sigval value);
 #define	SIGTSTP		PosixSIGTSTP	/* stop signal from tty */
 #define	SIGCONT		PosixSIGCONT	/* continue a stopped process */
 #define	SIGCHLD		PosixSIGCHLD	/* to parent on child stop or exit */
-#define	SIGCLD		PosixSIGCLD	/* System V name for SIGCHLD */
+#define	SIGCLD		PosixSIGCHLD	/* System V name for SIGCHLD */
 #define	SIGTTIN		PosixSIGTTIN	/* to readers pgrp upon background tty read */
 #define	SIGTTOU		PosixSIGTTOU	/* like TTIN for output if (tp->t_local&LTOSTOP) */
 #define	SIGIO		PosixSIGIO	/* input/output possible signal */
