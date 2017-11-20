@@ -393,7 +393,10 @@ jehanne_fprint(2, "_fcntl_r(%d, %d, %d) from %#p\n", fd, cmd, arg, jehanne_getca
 		pcmd = PosixFDCDupFDCloseOnExec;
 		break;
 	case F_GETFD:
-		if(POSIX_fcntl(errnop, fd, PosixFDCGetFD, arg))
+		tmp = POSIX_fcntl(errnop, fd, PosixFDCGetFD, arg);
+		if(tmp < 0)
+			return -1;
+		if(tmp)
 			return O_CLOEXEC;
 		return 0;
 	case F_SETFD:
