@@ -35,6 +35,13 @@ tcsetpgrp(int fd, int pgrp)
 	return POSIX_tcsetpgrp(errnop, fd, pgrp);
 }
 
+int
+tcflush(int fd, int queue_selector)
+{
+	// blatant lie
+	return 0;
+}
+
 #define	CESC	'\\'
 #define	CINTR	0177	/* DEL */
 #define	CQUIT	034	/* FS, cntl | */

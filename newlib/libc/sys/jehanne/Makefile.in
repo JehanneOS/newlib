@@ -56,7 +56,8 @@ lib_a_AR = $(AR) $(ARFLAGS)
 @MAY_SUPPLY_SYSCALLS_TRUE@	ids.o chmod.o sigsets.o sigaction.o \
 @MAY_SUPPLY_SYSCALLS_TRUE@	sigsuspend.o sigwaitinfo.o \
 @MAY_SUPPLY_SYSCALLS_TRUE@	sigtimedwait.o sigwait.o alarm.o \
-@MAY_SUPPLY_SYSCALLS_TRUE@	sigqueue.o siglongjmp.o termios.o
+@MAY_SUPPLY_SYSCALLS_TRUE@	sigqueue.o siglongjmp.o termios.o \
+@MAY_SUPPLY_SYSCALLS_TRUE@	ioctl.o
 am_lib_a_OBJECTS = lib_a-getenv_r.$(OBJEXT) lib_a-getenv.$(OBJEXT) \
 	lib_a-malloc.$(OBJEXT) lib_a-mallocr.$(OBJEXT) \
 	lib_a-free.$(OBJEXT) lib_a-freer.$(OBJEXT) \
@@ -187,7 +188,7 @@ noinst_LIBRARIES = lib.a
 @MAY_SUPPLY_SYSCALLS_TRUE@extra_objs = syscalls.o libposix_conf.o chown.o getrusage.o ids.o \
 @MAY_SUPPLY_SYSCALLS_TRUE@	chmod.o sigsets.o sigaction.o sigsuspend.o sigwaitinfo.o \
 @MAY_SUPPLY_SYSCALLS_TRUE@	sigtimedwait.o sigwait.o alarm.o sigqueue.o siglongjmp.o \
-@MAY_SUPPLY_SYSCALLS_TRUE@	termios.o
+@MAY_SUPPLY_SYSCALLS_TRUE@	termios.o ioctl.o
 
 lib_a_SOURCES = getenv_r.c getenv.c malloc.c mallocr.c free.c freer.c \
 	calloc.c callocr.c realloc.c reallocr.c environ.c signal.c \
@@ -197,7 +198,7 @@ lib_a_LIBADD = $(extra_objs)
 EXTRA_lib_a_SOURCES = libposix_conf.c syscalls.c chown.c getrusage.c \
 	ids.c chmod.c sigsets.c sigaction.c sigsuspend.c sigwaitinfo.c \
 	sigtimedwait.c sigwait.c alarm.c sigqueue.c siglongjmp.c \
-	termios.c
+	termios.c ioctl.c
 
 lib_a_DEPENDENCIES = $(extra_objs)
 lib_a_CCASFLAGS = $(AM_CCASFLAGS)
@@ -451,6 +452,12 @@ lib_a-termios.o: termios.c
 
 lib_a-termios.obj: termios.c
 	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-termios.obj `if test -f 'termios.c'; then $(CYGPATH_W) 'termios.c'; else $(CYGPATH_W) '$(srcdir)/termios.c'; fi`
+
+lib_a-ioctl.o: ioctl.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-ioctl.o `test -f 'ioctl.c' || echo '$(srcdir)/'`ioctl.c
+
+lib_a-ioctl.obj: ioctl.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-ioctl.obj `if test -f 'ioctl.c'; then $(CYGPATH_W) 'ioctl.c'; else $(CYGPATH_W) '$(srcdir)/ioctl.c'; fi`
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \

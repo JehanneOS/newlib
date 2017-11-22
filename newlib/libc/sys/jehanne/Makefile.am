@@ -8,7 +8,7 @@ if MAY_SUPPLY_SYSCALLS
 extra_objs = syscalls.o libposix_conf.o chown.o getrusage.o ids.o \
 	chmod.o sigsets.o sigaction.o sigsuspend.o sigwaitinfo.o \
 	sigtimedwait.o sigwait.o alarm.o sigqueue.o siglongjmp.o \
-	termios.o
+	termios.o ioctl.o
 else
 extra_objs =
 endif
@@ -21,7 +21,7 @@ lib_a_LIBADD = $(extra_objs)
 EXTRA_lib_a_SOURCES = libposix_conf.c syscalls.c chown.c getrusage.c \
 	ids.c chmod.c sigsets.c sigaction.c sigsuspend.c sigwaitinfo.c \
 	sigtimedwait.c sigwait.c alarm.c sigqueue.c siglongjmp.c \
-	termios.c
+	termios.c ioctl.c
 lib_a_DEPENDENCIES = $(extra_objs)
 lib_a_CCASFLAGS = $(AM_CCASFLAGS)
 lib_a_CFLAGS = $(AM_CFLAGS)
