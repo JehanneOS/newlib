@@ -102,7 +102,7 @@ extern	void	jehanne_sysfatal(const char*, ...);
 #undef __CYGWIN__
 #include <reent.h>
 
-extern void __application_newlib_init(void) __attribute__((weak));
+extern void __application_newlib_init(int argc, char *argv[]) __attribute__((weak));
 
 static PosixError
 __stat_reader(struct stat *s, const Dir *d)
@@ -221,7 +221,7 @@ open_translator(int flag, int mode, long *omode, long *cperm)
 static PosixError
 default_error_translator(char* error, uintptr_t caller)
 {
-	jehanne_fprint(2, "newlib: %s\n", error);
+//jehanne_fprint(2, "newlib: %s\n", error);
 	PosixError e = libposix_translate_kernel_errors(error);
 	if(e != 0)
 		return e;
@@ -271,7 +271,7 @@ on_process_disposition(int status)
 }
 
 void
-initialize_newlib(void)
+initialize_newlib(int argc, char *argv[])
 {
 	/* */
 	libposix_define_at_fdcwd(AT_FDCWD);
@@ -370,7 +370,7 @@ initialize_newlib(void)
 
 	/* let the application override defaults */
 	if(__application_newlib_init != 0)
-		__application_newlib_init();
+		__application_newlib_init(argc, argv);
 }
 
 /* _fcntl_r is here to access <fcntl.h> */

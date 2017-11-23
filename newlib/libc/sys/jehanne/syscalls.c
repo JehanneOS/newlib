@@ -23,7 +23,7 @@
 typedef unsigned long clock_t;
 typedef unsigned long useconds_t;
 
-extern void initialize_newlib(void);
+extern void initialize_newlib(int argc, char *argv[]);
 static void newlib(int argc, char *argv[]) __attribute__((noreturn));
 
 void
