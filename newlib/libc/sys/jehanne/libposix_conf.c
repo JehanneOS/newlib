@@ -227,6 +227,8 @@ default_error_translator(char* error, uintptr_t caller)
 		return e;
 	if(caller == ADDRESS(POSIX_open))
 		return PosixEIO;
+	if(caller == ADDRESS(POSIX_execve))
+		return PosixEPERM;
 	if(caller == ADDRESS(POSIX_chdir))
 		return PosixEACCES;
 	if(caller == ADDRESS(POSIX_chmod))
