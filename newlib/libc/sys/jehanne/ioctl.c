@@ -69,7 +69,7 @@ PixelSized:
 		fd = open("/dev/wctl", OWRITE);
 		if(fd < 0)
 			return 0;
-		i = snprint(buf, sizeof(buf), "resize -dx %su -dy %su", size->ws_xpixel, size->ws_ypixel);
+		i = jehanne_snprint(buf, sizeof(buf), "resize -dx %su -dy %su", size->ws_xpixel, size->ws_ypixel);
 		write(fd, buf, i);
 		close(fd);
 		return 1;
