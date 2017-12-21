@@ -18,6 +18,17 @@
 #ifndef _SYS_IOCTL_H
 #define _SYS_IOCTL_H
 
+#define TIOCGWINSZ 1
+#define TIOCSWINSZ 2
+
+struct winsize {
+	unsigned short ws_row;
+	unsigned short ws_col;
+	unsigned short ws_xpixel;   /* unused */
+	unsigned short ws_ypixel;   /* unused */
+};
+
+
 int ioctl(int fd, int request, ...);
 
 #endif
