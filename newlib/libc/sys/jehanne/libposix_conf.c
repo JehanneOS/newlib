@@ -277,6 +277,7 @@ initialize_newlib(int argc, char *argv[])
 {
 	/* */
 	libposix_define_at_fdcwd(AT_FDCWD);
+	libposix_define_ononblock(O_NONBLOCK);
 	libposix_set_stat_reader(stat_reader);
 	libposix_set_timeval_reader(default_timeval_reader);
 	libposix_set_timezone_reader(default_timezone_reader);
