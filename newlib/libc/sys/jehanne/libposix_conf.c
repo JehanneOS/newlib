@@ -425,3 +425,11 @@ jehanne_fprint(2, "_fcntl_r(%d, %d, %d) from %#p\n", fd, cmd, arg, jehanne_getca
 	}
 	return POSIX_fcntl(errnop, fd, pcmd, arg);
 }
+
+int
+__fail_with_einval(void)
+{
+	int *errnop = &_REENT->_errno;
+	*errnop = EINVAL;
+	return -1;
+}

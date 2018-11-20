@@ -84,3 +84,29 @@ tcsetattr(int fd, int optactions, const struct termios *t)
 		return 0;
 	return -1;
 }
+
+speed_t
+cfgetispeed(const struct termios *t)
+{
+	return 38400;
+}
+
+speed_t
+cfgetospeed(const struct termios *t)
+{
+	return 38400;
+}
+
+int
+cfsetispeed(struct termios *tp, speed_t speed)
+{
+	extern int _fcntl_r(struct _reent *r, int fd, int cmd, int arg);
+	return __fail_with_einval();
+}
+
+int
+cfsetospeed(struct termios *tp, speed_t speed)
+{
+	extern int _fcntl_r(struct _reent *r, int fd, int cmd, int arg);
+	return __fail_with_einval();
+}
