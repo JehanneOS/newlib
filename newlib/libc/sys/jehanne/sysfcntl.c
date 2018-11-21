@@ -20,6 +20,7 @@
 #include <posix.h>
 #include <reent.h>
 
+extern int _fcntl_r(struct _reent *r, int fd, int cmd, int arg);
 extern int __fail_with_einval(void);
 
 int
@@ -31,13 +32,11 @@ fcntl(int fd, int cmd, int arg)
 long
 fpathconf(int fildes, int name)
 {
-	extern int _fcntl_r(struct _reent *r, int fd, int cmd, int arg);
 	return __fail_with_einval();
 }
 
 long
 pathconf(const char *path, int name)
 {
-	extern int _fcntl_r(struct _reent *r, int fd, int cmd, int arg);
 	return __fail_with_einval();
 }

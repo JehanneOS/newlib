@@ -100,13 +100,13 @@ cfgetospeed(const struct termios *t)
 int
 cfsetispeed(struct termios *tp, speed_t speed)
 {
-	extern int _fcntl_r(struct _reent *r, int fd, int cmd, int arg);
+	extern int __fail_with_einval(void);
 	return __fail_with_einval();
 }
 
 int
 cfsetospeed(struct termios *tp, speed_t speed)
 {
-	extern int _fcntl_r(struct _reent *r, int fd, int cmd, int arg);
+	extern int __fail_with_einval(void);
 	return __fail_with_einval();
 }
