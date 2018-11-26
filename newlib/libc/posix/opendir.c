@@ -43,24 +43,12 @@ static char sccsid[] = "@(#)opendir.c	5.11 (Berkeley) 2/23/91";
 #include <unistd.h>
 #include <sys/lock.h>
 
-/*
- * open a directory.
- */
-DIR *
-_DEFUN(opendir, (name),
-	const char *name)
+static DIR *
+_opendir_common(int fd)
 {
-	register DIR *dirp;
-	register int fd;
-	int rc = 0;
+	DIR *dirp;
 
-	if ((fd = open(name, 0)) == -1)
-		return NULL;
-#ifdef HAVE_FCNTL
-	rc = fcntl(fd, F_SETFD, 1);
-#endif
-	if (rc == -1 ||
-	    (dirp = (DIR *)malloc(sizeof(DIR))) == NULL) {
+	if ((dirp = (DIR *)malloc(sizeof(DIR))) == NULL) {
 		close (fd);
 		return NULL;
 	}
@@ -91,6 +79,25 @@ _DEFUN(opendir, (name),
 #endif
 
 	return dirp;
+}
+
+DIR *
+opendir(const char *name)
+{
+	int fd;
+
+	if ((fd = open(name, O_RDONLY | O_DIRECTORY | O_CLOEXEC)) == -1)
+		return (NULL);
+	return (_opendir_common(fd));
+}
+
+DIR *
+fdopendir(int fd)
+{
+
+	if (fcntl(fd, F_SETFD, FD_CLOEXEC) == -1)
+		return (NULL);
+	return (_opendir_common(fd));
 }
 
 #endif /* ! HAVE_OPENDIR */

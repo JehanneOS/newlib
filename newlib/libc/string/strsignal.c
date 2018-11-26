@@ -5,14 +5,9 @@ FUNCTION
 INDEX
 	strsignal
 
-ANSI_SYNOPSIS
+SYNOPSIS
 	#include <string.h>
 	char *strsignal(int <[signal]>);
-
-TRAD_SYNOPSIS
-	#include <string.h>
-	char *strsignal(<[signal]>)
-	int <[signal]>;
 
 DESCRIPTION
 <<strsignal>> converts the signal number <[signal]> into a
@@ -58,8 +53,7 @@ QUICKREF
 #include <reent.h>
 
 char *
-_DEFUN (strsignal, (signal),
-	int signal)
+strsignal (int signal)
 {
   char *buffer;
   struct _reent *ptr;

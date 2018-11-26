@@ -316,7 +316,7 @@ frok::parent (volatile char * volatile stack_here)
 	 on whether we're running on a pthread or not.  If pthread, we fetch
 	 the guardpage size from the pthread attribs, otherwise we use the
 	 system default. */
-      ch.stacklimit = (void *) ((uintptr_t) stack_here & ~wincap.page_size ());
+      ch.stacklimit = (void *) ((uintptr_t) stack_here & ~(wincap.page_size () - 1));
       ch.guardsize = (&_my_tls != _main_tls && _my_tls.tid)
 		     ? _my_tls.tid->attr.guardsize
 		     : wincap.def_guard_page_size ();
@@ -618,13 +618,8 @@ fork ()
       if (!grouped.errmsg)
 	syscall_printf ("fork failed - child pid %d, errno %d", grouped.child_pid, grouped.this_errno);
       else
-	{
-	  char buf[strlen (grouped.errmsg) + sizeof ("child %d - , errno 4294967295  ")];
-	  strcpy (buf, "child %d - ");
-	  strcat (buf, grouped.errmsg);
-	  strcat (buf, ", errno %d");
-	  system_printf (buf, grouped.child_pid, grouped.this_errno);
-	}
+	system_printf ("child %d - %s, errno %d", grouped.child_pid,
+		       grouped.errmsg, grouped.this_errno);
 
       set_errno (grouped.this_errno);
     }

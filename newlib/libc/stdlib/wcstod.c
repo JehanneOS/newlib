@@ -26,7 +26,7 @@ INDEX
 INDEX
 	_wcstof_r
 
-ANSI_SYNOPSIS
+SYNOPSIS
         #include <stdlib.h>
         double wcstod(const wchar_t *__restrict <[str]>,
 		      wchar_t **__restrict <[tail]>);
@@ -48,26 +48,6 @@ ANSI_SYNOPSIS
                          const wchar_t *<[str]>, wchar_t **<[tail]>);
         float _wcstof_r(void *<[reent]>,
                          const wchar_t *<[str]>, wchar_t **<[tail]>);
-
-TRAD_SYNOPSIS
-        #include <stdlib.h>
-        double wcstod(<[str]>,<[tail]>)
-        wchar_t *__restrict <[str]>;
-        wchar_t **__restrict <[tail]>;
-
-        float wcstof(<[str]>,<[tail]>)
-        wchar_t *__restrict <[str]>;
-        wchar_t **__restrict <[tail]>;
-
-        double _wcstod_r(<[reent]>,<[str]>,<[tail]>)
-	wchar_t *<[reent]>;
-        wchar_t *<[str]>;
-        wchar_t **<[tail]>;
-
-        float _wcstof_r(<[reent]>,<[str]>,<[tail]>)
-	wchar_t *<[reent]>;
-        wchar_t *<[str]>;
-        wchar_t **<[tail]>;
 
 DESCRIPTION
 	<<wcstod>>, <<wcstof>>, <<wcstold>> parse the wide-character string
@@ -208,6 +188,7 @@ _wcstod_l (struct _reent *ptr, const wchar_t *nptr, wchar_t **endptr,
          * corresponding position in the wide char string.
          */
         if (endptr != NULL) {
+		const char *decimal_point = __get_numeric_locale(loc)->decimal_point;
 		/* The only valid multibyte char in a float converted by
 		   strtod/wcstod is the radix char.  What we do here is,
 		   figure out if the radix char was in the valid leading
@@ -218,10 +199,9 @@ _wcstod_l (struct _reent *ptr, const wchar_t *nptr, wchar_t **endptr,
 		   just one byte long.  The resulting difference (end - buf)
 		   is then equivalent to the number of valid wide characters
 		   in the input string. */
-		len = strlen (__localeconv_l (loc)->decimal_point);
+		len = strlen (decimal_point);
 		if (len > 1) {
-			char *d = strstr (buf,
-					  __localeconv_l (loc)->decimal_point);
+			char *d = strstr (buf, decimal_point);
 			if (d && d < end)
 				end -= len - 1;
 		}
@@ -234,23 +214,21 @@ _wcstod_l (struct _reent *ptr, const wchar_t *nptr, wchar_t **endptr,
 }
 
 double
-_DEFUN (_wcstod_r, (ptr, nptr, endptr),
-	struct _reent *ptr _AND
-	_CONST wchar_t *nptr _AND
+_wcstod_r (struct _reent *ptr,
+	const wchar_t *nptr,
 	wchar_t **endptr)
 {
   return _wcstod_l (ptr, nptr, endptr, __get_current_locale ());
 }
 
 float
-_DEFUN (_wcstof_r, (ptr, nptr, endptr),
-	struct _reent *ptr _AND
-	_CONST wchar_t *nptr _AND
+_wcstof_r (struct _reent *ptr,
+	const wchar_t *nptr,
 	wchar_t **endptr)
 {
   double retval = _wcstod_l (ptr, nptr, endptr, __get_current_locale ());
   if (isnan (retval))
-    return nanf (NULL);
+    return nanf ("");
   return (float)retval;
 }
 
@@ -264,8 +242,7 @@ wcstod_l (const wchar_t *__restrict nptr, wchar_t **__restrict endptr,
 }
 
 double
-_DEFUN (wcstod, (nptr, endptr),
-	_CONST wchar_t *__restrict nptr _AND wchar_t **__restrict endptr)
+wcstod (const wchar_t *__restrict nptr, wchar_t **__restrict endptr)
 {
   return _wcstod_l (_REENT, nptr, endptr, __get_current_locale ());
 }
@@ -276,7 +253,7 @@ wcstof_l (const wchar_t *__restrict nptr, wchar_t **__restrict endptr,
 {
   double val = _wcstod_l (_REENT, nptr, endptr, loc);
   if (isnan (val))
-    return nanf (NULL);
+    return nanf ("");
   float retval = (float) val;
 #ifndef NO_ERRNO
   if (isinf (retval) && !isinf (val))
@@ -286,13 +263,12 @@ wcstof_l (const wchar_t *__restrict nptr, wchar_t **__restrict endptr,
 }
 
 float
-_DEFUN (wcstof, (nptr, endptr),
-	_CONST wchar_t *__restrict nptr _AND
+wcstof (const wchar_t *__restrict nptr,
 	wchar_t **__restrict endptr)
 {
   double val = _wcstod_l (_REENT, nptr, endptr, __get_current_locale ());
   if (isnan (val))
-    return nanf (NULL);
+    return nanf ("");
   float retval = (float) val;
 #ifndef NO_ERRNO
   if (isinf (retval) && !isinf (val))

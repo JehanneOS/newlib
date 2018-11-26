@@ -20,18 +20,10 @@ INDEX
 INDEX
     logf
 
-ANSI_SYNOPSIS
+SYNOPSIS
        #include <math.h>
        double log(double <[x]>);
        float logf(float <[x]>);
-
-TRAD_SYNOPSIS
-       #include <math.h>
-       double log(<[x]>);
-       double <[x]>;
-
-       float logf(<[x]>);
-       float <[x]>;
 
 DESCRIPTION
 Return the natural logarithm of <[x]>, that is, its logarithm base e
@@ -57,6 +49,7 @@ PORTABILITY
  */
 
 #include "fdlibm.h"
+#if __OBSOLETE_MATH
 #include <errno.h>
 
 #ifndef _DOUBLE_IS_32BITS
@@ -114,3 +107,4 @@ PORTABILITY
 }
 
 #endif /* defined(_DOUBLE_IS_32BITS) */
+#endif /* __OBSOLETE_MATH */

@@ -108,7 +108,7 @@
 #define _POINTER_INT short
 #endif
 
-#ifdef __v850
+#if defined(__v850) && !defined(__rtems__)
 #define __ATTRIBUTE_IMPURE_PTR__ __attribute__((__sda__))
 #endif
 
@@ -280,6 +280,12 @@
 #ifdef _WANT_REENT_GLOBAL_STDIO_STREAMS
 #ifndef _REENT_GLOBAL_STDIO_STREAMS
 #define _REENT_GLOBAL_STDIO_STREAMS
+#endif
+#endif
+
+#ifdef _WANT_USE_LONG_TIME_T
+#ifndef _USE_LONG_TIME_T
+#define _USE_LONG_TIME_T
 #endif
 #endif
 

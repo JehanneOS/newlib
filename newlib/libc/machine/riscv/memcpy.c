@@ -2,7 +2,7 @@
 
    This copyrighted material is made available to anyone wishing to use,
    modify, copy, or redistribute it subject to the terms and conditions
-   of the BSD License.   This program is distributed in the hope that
+   of the FreeBSD License.   This program is distributed in the hope that
    it will be useful, but WITHOUT ANY WARRANTY expressed or implied,
    including the implied warranties of MERCHANTABILITY or FITNESS FOR
    A PARTICULAR PURPOSE.  A copy of this license is available at
@@ -11,10 +11,12 @@
 
 #include <string.h>
 #include <stdint.h>
+#include "../../string/local.h"
 
 #define unlikely(X) __builtin_expect (!!(X), 0)
 
 void *
+__inhibit_loop_to_libcall
 memcpy(void *__restrict aa, const void *__restrict bb, size_t n)
 {
   #define BODY(a, b, t) { \

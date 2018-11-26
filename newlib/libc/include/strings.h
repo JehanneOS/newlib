@@ -50,7 +50,7 @@ void	 bzero(void *, size_t);					/* LEGACY */
 #if __BSD_VISIBLE
 void	 explicit_bzero(void *, size_t);
 #endif
-#if __XSI_VISIBLE
+#if __MISC_VISIBLE || __POSIX_VISIBLE < 200809 || __XSI_VISIBLE >= 700
 int	 ffs(int) __pure2;
 #endif
 #if __BSD_VISIBLE
@@ -72,5 +72,9 @@ int	 strcasecmp_l (const char *, const char *, locale_t);
 int	 strncasecmp_l (const char *, const char *, size_t, locale_t);
 #endif
 __END_DECLS
+
+#if __SSP_FORTIFY_LEVEL > 0
+#include <ssp/strings.h>
+#endif
 
 #endif /* _STRINGS_H_ */

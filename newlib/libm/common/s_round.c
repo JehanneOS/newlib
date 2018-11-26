@@ -16,7 +16,7 @@ INDEX
 INDEX
 	roundf
 
-ANSI_SYNOPSIS
+SYNOPSIS
 	#include <math.h>
 	double round(double <[x]>);
 	float roundf(float <[x]>);
@@ -68,7 +68,7 @@ SEEALSO
           msw &= 0x80000000;
           if (exponent_less_1023 == -1)
             /* Result is +1.0 or -1.0. */
-            msw |= (1023 << 20);
+            msw |= ((__int32_t)1023 << 20);
           lsw = 0;
         }
       else
