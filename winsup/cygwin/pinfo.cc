@@ -529,7 +529,7 @@ _pinfo::set_ctty (fhandler_termios *fh, int flags)
 bool __reg1
 _pinfo::exists ()
 {
-  return this && process_state && !(process_state & (PID_EXITED | PID_REAPED | PID_EXECED));
+  return process_state && !(process_state & (PID_EXITED | PID_REAPED | PID_EXECED));
 }
 
 bool
@@ -677,11 +677,12 @@ commune_process (void *arg)
 	sigproc_printf ("processing PICOM_ENVIRON");
 	unsigned n = 0;
 	char **env = cur_environ ();
-	for (char **e = env; *e; e++)
-	  n += strlen (*e) + 1;
+	if (env)
+	  for (char **e = env; *e; e++)
+	    n += strlen (*e) + 1;
 	if (!WritePipeOverlapped (tothem, &n, sizeof n, &nr, 1000L))
 	  sigproc_printf ("WritePipeOverlapped sizeof argv failed, %E");
-	else
+	else if (env)
 	  for (char **e = env; *e; e++)
 	    if (!WritePipeOverlapped (tothem, *e, strlen (*e) + 1, &nr, 1000L))
 	      {
@@ -720,7 +721,7 @@ _pinfo::commune_request (__uint32_t code, ...)
   res.s = NULL;
   res.n = 0;
 
-  if (!this || !pid)
+  if (!pid)
     {
       set_errno (ESRCH);
       goto err;
@@ -819,7 +820,7 @@ out:
 fhandler_pipe *
 _pinfo::pipe_fhandler (int64_t unique_id, size_t &n)
 {
-  if (!this || !pid)
+  if (!pid)
     return NULL;
   if (pid == myself->pid)
     return NULL;
@@ -832,7 +833,7 @@ char *
 _pinfo::fd (int fd, size_t &n)
 {
   char *s;
-  if (!this || !pid)
+  if (!pid)
     return NULL;
   if (pid != myself->pid)
     {
@@ -856,7 +857,7 @@ char *
 _pinfo::fds (size_t &n)
 {
   char *s;
-  if (!this || !pid)
+  if (!pid)
     return NULL;
   if (pid != myself->pid)
     {
@@ -884,7 +885,7 @@ char *
 _pinfo::root (size_t& n)
 {
   char *s;
-  if (!this || !pid)
+  if (!pid)
     return NULL;
   if (pid != myself->pid && !ISSTATE (this, PID_NOTCYGWIN))
     {
@@ -930,7 +931,7 @@ char *
 _pinfo::cwd (size_t& n)
 {
   char *s = NULL;
-  if (!this || !pid)
+  if (!pid)
     return NULL;
   if (ISSTATE (this, PID_NOTCYGWIN))
     {
@@ -976,7 +977,7 @@ char *
 _pinfo::cmdline (size_t& n)
 {
   char *s = NULL;
-  if (!this || !pid)
+  if (!pid)
     return NULL;
   if (ISSTATE (this, PID_NOTCYGWIN))
     {
@@ -1036,7 +1037,7 @@ char *
 _pinfo::environ (size_t& n)
 {
   char **env = NULL;
-  if (!this || !pid)
+  if (!pid)
     return NULL;
   if (ISSTATE (this, PID_NOTCYGWIN))
     {

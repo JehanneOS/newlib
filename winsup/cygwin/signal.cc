@@ -65,7 +65,7 @@ clock_nanosleep (clockid_t clk_id, int flags, const struct timespec *rqtp,
   sig_dispatch_pending ();
   pthread_testcancel ();
 
-  if (rqtp->tv_sec < 0 || rqtp->tv_nsec < 0 || rqtp->tv_nsec > 999999999L)
+  if (rqtp->tv_sec < 0 || rqtp->tv_nsec < 0 || rqtp->tv_nsec >= NSPERSEC)
     return EINVAL;
 
   /* Explicitly disallowed by POSIX. Needs to be checked first to avoid
@@ -89,8 +89,9 @@ clock_nanosleep (clockid_t clk_id, int flags, const struct timespec *rqtp,
 
   LARGE_INTEGER timeout;
 
-  timeout.QuadPart = (LONGLONG) rqtp->tv_sec * NSPERSEC
-		     + ((LONGLONG) rqtp->tv_nsec + 99LL) / 100LL;
+  timeout.QuadPart = (LONGLONG) rqtp->tv_sec * NS100PERSEC
+		     + ((LONGLONG) rqtp->tv_nsec + (NSPERSEC/NS100PERSEC) - 1)
+		       / (NSPERSEC/NS100PERSEC);
 
   if (abstime)
     {
@@ -107,7 +108,8 @@ clock_nanosleep (clockid_t clk_id, int flags, const struct timespec *rqtp,
       else
 	{
 	  /* other clocks need to be handled with a relative timeout */
-	  timeout.QuadPart -= tp.tv_sec * NSPERSEC + tp.tv_nsec / 100LL;
+	  timeout.QuadPart -= tp.tv_sec * NS100PERSEC
+			      + tp.tv_nsec / (NSPERSEC/NS100PERSEC);
 	  timeout.QuadPart *= -1LL;
 	}
     }
@@ -123,8 +125,9 @@ clock_nanosleep (clockid_t clk_id, int flags, const struct timespec *rqtp,
   /* according to POSIX, rmtp is used only if !abstime */
   if (rmtp && !abstime)
     {
-      rmtp->tv_sec = (time_t) (timeout.QuadPart / NSPERSEC);
-      rmtp->tv_nsec = (long) ((timeout.QuadPart % NSPERSEC) * 100LL);
+      rmtp->tv_sec = (time_t) (timeout.QuadPart / NS100PERSEC);
+      rmtp->tv_nsec = (long) ((timeout.QuadPart % NS100PERSEC)
+			      * (NSPERSEC/NS100PERSEC));
     }
 
   syscall_printf ("%d = clock_nanosleep(%lu, %d, %ld.%09ld, %ld.%09.ld)",
@@ -160,8 +163,8 @@ extern "C" unsigned int
 usleep (useconds_t useconds)
 {
   struct timespec req;
-  req.tv_sec = useconds / 1000000;
-  req.tv_nsec = (useconds % 1000000) * 1000;
+  req.tv_sec = useconds / USPERSEC;
+  req.tv_nsec = (useconds % USPERSEC) * (NSPERSEC/USPERSEC);
   int res = clock_nanosleep (CLOCK_REALTIME, 0, &req, NULL);
   if (res != 0)
     {
@@ -260,7 +263,7 @@ _pinfo::kill (siginfo_t& si)
 	}
       this_pid = pid;
     }
-  else if (this && process_state == PID_EXITED)
+  else if (process_state == PID_EXITED)
     {
       this_process_state = process_state;
       this_pid = pid;
@@ -296,8 +299,17 @@ kill0 (pid_t pid, siginfo_t& si)
       syscall_printf ("signal %d out of range", si.si_signo);
       return -1;
     }
-
-  return (pid > 0) ? pinfo (pid)->kill (si) : kill_pgrp (-pid, si);
+  if (pid > 0)
+    {
+      pinfo p (pid);
+      if (!p)
+	{
+	  set_errno (ESRCH);
+	  return -1;
+	}
+      return p->kill (si);
+    }
+  return kill_pgrp (-pid, si);
 }
 
 int
@@ -323,7 +335,7 @@ kill_pgrp (pid_t pid, siginfo_t& si)
     {
       _pinfo *p = pids[i];
 
-      if (!p->exists ())
+      if (!p || !p->exists ())
 	continue;
 
       /* Is it a process we want to kill?  */
@@ -566,23 +578,8 @@ siginterrupt (int sig, int flag)
   return res;
 }
 
-extern "C" int
-sigwait (const sigset_t *set, int *sig_ptr)
-{
-  int sig;
-
-  do
-    {
-      sig = sigwaitinfo (set, NULL);
-    }
-  while (sig == -1 && get_errno () == EINTR);
-  if (sig > 0)
-    *sig_ptr = sig;
-  return sig > 0 ? 0 : get_errno ();
-}
-
-extern "C" int
-sigwaitinfo (const sigset_t *set, siginfo_t *info)
+static inline int
+sigwait_common (const sigset_t *set, siginfo_t *info, PLARGE_INTEGER waittime)
 {
   int res = -1;
 
@@ -593,7 +590,7 @@ sigwaitinfo (const sigset_t *set, siginfo_t *info)
       set_signal_mask (_my_tls.sigwait_mask, *set);
       sig_dispatch_pending (true);
 
-      switch (cygwait (NULL, cw_infinite, cw_sig_eintr | cw_cancel | cw_cancel_self))
+      switch (cygwait (NULL, waittime, cw_sig_eintr | cw_cancel | cw_cancel_self))
 	{
 	case WAIT_SIGNALED:
 	  if (!sigismember (set, _my_tls.infodata.si_signo))
@@ -610,6 +607,9 @@ sigwaitinfo (const sigset_t *set, siginfo_t *info)
 	      _my_tls.unlock ();
 	    }
 	  break;
+	case WAIT_TIMEOUT:
+	  set_errno (EAGAIN);
+	  break;
 	default:
 	  __seterrno ();
 	  break;
@@ -621,6 +621,51 @@ sigwaitinfo (const sigset_t *set, siginfo_t *info)
   __endtry
   sigproc_printf ("returning signal %d", res);
   return res;
+}
+
+extern "C" int
+sigtimedwait (const sigset_t *set, siginfo_t *info, const timespec *timeout)
+{
+  LARGE_INTEGER waittime;
+
+  if (timeout)
+    {
+      if (timeout->tv_sec < 0
+	    || timeout->tv_nsec < 0 || timeout->tv_nsec > NSPERSEC)
+	{
+	  set_errno (EINVAL);
+	  return -1;
+	}
+      /* convert timespec to 100ns units */
+      waittime.QuadPart = (LONGLONG) timeout->tv_sec * NS100PERSEC
+                          + ((LONGLONG) timeout->tv_nsec + (NSPERSEC/NS100PERSEC) - 1)
+			    / (NSPERSEC/NS100PERSEC);
+      /* negate waittime to code as duration for NtSetTimer() below cygwait() */
+      waittime.QuadPart = -waittime.QuadPart;
+    }
+
+  return sigwait_common (set, info, timeout ? &waittime : cw_infinite);
+}
+
+extern "C" int
+sigwait (const sigset_t *set, int *sig_ptr)
+{
+  int sig;
+
+  do
+    {
+      sig = sigwait_common (set, NULL, cw_infinite);
+    }
+  while (sig == -1 && get_errno () == EINTR);
+  if (sig > 0)
+    *sig_ptr = sig;
+  return sig > 0 ? 0 : get_errno ();
+}
+
+extern "C" int
+sigwaitinfo (const sigset_t *set, siginfo_t *info)
+{
+  return sigwait_common (set, info, cw_infinite);
 }
 
 /* FIXME: SUSv3 says that this function should block until the signal has

@@ -68,7 +68,7 @@ __weak_alias(strptime,_strptime)
 #define ALT_O			0x02
 #define	LEGAL_ALT(x)		{ if (alt_format & ~(x)) return NULL; }
 
-static _CONST int _DAYS_BEFORE_MONTH[12] =
+static const int _DAYS_BEFORE_MONTH[12] =
 {0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334};
 
 #define SET_MDAY 1
@@ -413,13 +413,15 @@ literal:
 		case 'F':	/* The date as "%Y-%m-%d". */
 			{
 			  LEGAL_ALT(0);
-			  ymd |= SET_YMD;
 			  char *tmp = __strptime ((const char *) bp, "%Y-%m-%d",
 						  tm, era_info, alt_digits,
 						  locale);
-			  if (tmp && (uint) (tmp - (char *) bp) > width)
+			  /* width max chars converted, default 10, < 6 => 6 */
+			  if (tmp && (char *) bp +
+				(!width ? 10 : width < 6 ? 6 : width) < tmp)
 			    return NULL;
 			  bp = (const unsigned char *) tmp;
+			  ymd |= SET_YMD;
 			  continue;
 			}
 
@@ -572,6 +574,26 @@ literal:
 			LEGAL_ALT(ALT_O);
 			bp = conv_num(bp, &tm->tm_sec, 0, 61, ALT_DIGITS);
 			continue;
+
+		case 's' :	/* The seconds since Unix epoch - GNU extension */
+		    {
+			long long sec;
+			time_t t;
+			char *end;
+			save_errno save;
+
+			LEGAL_ALT(0);
+			sec = strtoll_l ((char *)bp, &end, 10, locale);
+			t = sec;
+			if (end == (char *)bp
+			    || errno != 0
+			    || t != sec
+			    || localtime_r (&t, tm) != tm)
+			    return NULL;
+			bp = (const unsigned char *)end;
+			ymd |= SET_YDAY | SET_WDAY | SET_YMD;
+			break;
+		    }
 
 		case 'U':	/* The week of year, beginning on sunday. */
 		case 'W':	/* The week of year, beginning on monday. */

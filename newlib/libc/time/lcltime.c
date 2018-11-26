@@ -11,18 +11,10 @@ INDEX
 INDEX
 	localtime_r
 
-ANSI_SYNOPSIS
+SYNOPSIS
 	#include <time.h>
 	struct tm *localtime(time_t *<[clock]>);
 	struct tm *localtime_r(time_t *<[clock]>, struct tm *<[res]>);
-
-TRAD_SYNOPSIS
-	#include <time.h>
-	struct tm *localtime(<[clock]>)
-	time_t *<[clock]>;
-	struct tm *localtime(<[clock]>, <[res]>)
-	time_t *<[clock]>;
-	struct tm *<[res]>;
 
 DESCRIPTION
 <<localtime>> converts the time at <[clock]> into local time, then
@@ -51,8 +43,7 @@ ANSI C requires <<localtime>>.
 #ifndef _REENT_ONLY
 
 struct tm *
-_DEFUN (localtime, (tim_p),
-	_CONST time_t * tim_p)
+localtime (const time_t * tim_p)
 {
   struct _reent *reent = _REENT;
 

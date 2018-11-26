@@ -8,21 +8,16 @@ INDEX
 INDEX
 	iswlower_l
 
-ANSI_SYNOPSIS
+SYNOPSIS
 	#include <wctype.h>
 	int iswlower(wint_t <[c]>);
 
 	#include <wctype.h>
 	int iswlower_l(wint_t <[c]>, locale_t <[locale]>);
 
-TRAD_SYNOPSIS
-	#include <wctype.h>
-	int iswlower(<[c]>)
-	wint_t <[c]>;
-
 DESCRIPTION
 <<iswlower>> is a function which classifies wide-character values that
-have uppercase translations.
+are categorized as lowercase.
 
 <<iswlower_l>> is like <<iswlower>> but performs the check based on the
 locale specified by the locale object locale.  If <[locale]> is
@@ -41,7 +36,7 @@ No supporting OS subroutines are required.
 #include <wctype.h>
 
 int
-_DEFUN(iswlower,(c),wint_t c)
+iswlower (wint_t c)
 {
-	return (towupper (c) != c);
+  return iswlower_l (c, 0);
 }

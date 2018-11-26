@@ -17,6 +17,7 @@ details. */
 
 /* UID/GID */
 void uinfo_init ();
+bool check_token_membership (PSID);
 
 #define ILLEGAL_UID ((uid_t)-1)
 #define ILLEGAL_GID ((gid_t)-1)
@@ -44,7 +45,7 @@ void uinfo_init ();
 #define MAP_UNIX_TO_CYGWIN_ID(id)	(UNIX_POSIX_OFFSET \
 					 | ((id) & UNIX_POSIX_MASK))
 
-#ifndef __x86_64__
+#ifdef __i386__
 #define ILLEGAL_UID16 ((__uid16_t)-1)
 #define ILLEGAL_GID16 ((__gid16_t)-1)
 #define uid16touid32(u16)  ((u16)==ILLEGAL_UID16?ILLEGAL_UID:(uid_t)(u16))

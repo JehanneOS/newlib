@@ -15,6 +15,7 @@ details. */
 #include "path.h"
 #include "fhandler.h"
 #include "exception.h"
+#include "tls_pbuf.h"
 
 int __reg2
 check_invalid_virtual_addr (const void *s, unsigned sz)
@@ -399,7 +400,7 @@ pthread_wrapper (PVOID arg)
   /* Initialize new _cygtls. */
   _my_tls.init_thread (wrapper_arg.stackbase - CYGTLS_PADSIZE,
 		       (DWORD (*)(void*, void*)) wrapper_arg.func);
-#ifndef __x86_64__
+#ifdef __i386__
   /* Copy exception list over to new stack.  I'm not quite sure how the
      exception list is extended by Windows itself.  What's clear is that it
      always grows downwards and that it starts right at the stackbase.
@@ -824,16 +825,8 @@ asm volatile ("								\n\
  * DAMAGE.								\n\
  */									\n\
 									\n\
-	.globl  memmove							\n\
-	.seh_proc memmove						\n\
-memmove:								\n\
-	.seh_endprologue						\n\
-	nop			/* FALLTHRU */				\n\
-	.seh_endproc							\n\
-									\n\
-	.globl  memcpy							\n\
-	.seh_proc memcpy						\n\
-memcpy:									\n\
+	.seh_proc _memcpy						\n\
+_memcpy:								\n\
 	movq	%rsi,8(%rsp)						\n\
 	movq	%rdi,16(%rsp)						\n\
 	.seh_endprologue						\n\
@@ -841,7 +834,6 @@ memcpy:									\n\
 	movq	%rdx,%rsi						\n\
 	movq	%r8,%rdx						\n\
 									\n\
-	movq	%rdi,%rax	/* return dst */			\n\
 	movq    %rdx,%rcx						\n\
 	movq    %rdi,%r8						\n\
 	subq    %rsi,%r8						\n\
@@ -873,14 +865,39 @@ memcpy:									\n\
 	movq	16(%rsp),%rdi						\n\
 	ret								\n\
 	.seh_endproc							\n\
-");
-
-asm volatile ("								\n\
+									\n\
+	.globl  memmove							\n\
+	.seh_proc memmove						\n\
+memmove:								\n\
+	.seh_endprologue						\n\
+	movq	%rcx,%rax	/* return dst */			\n\
+	jmp	_memcpy							\n\
+	.seh_endproc							\n\
+									\n\
+	.globl  memcpy							\n\
+	.seh_proc memcpy						\n\
+memcpy:									\n\
+	.seh_endprologue						\n\
+	movq	%rcx,%rax	/* return dst */			\n\
+	jmp	_memcpy							\n\
+	.seh_endproc							\n\
+									\n\
+	.globl  mempcpy							\n\
+	.seh_proc mempcpy						\n\
+mempcpy:								\n\
+	.seh_endprologue						\n\
+	movq	%rcx,%rax	/* return dst  */			\n\
+	addq	%r8,%rax	/*         + n */			\n\
+	jmp	_memcpy							\n\
+	.seh_endproc							\n\
+									\n\
 	.globl  wmemmove						\n\
 	.seh_proc wmemmove						\n\
 wmemmove:								\n\
 	.seh_endprologue						\n\
-	nop			/* FALLTHRU */				\n\
+	shlq	$1,%r8		/* cnt * sizeof (wchar_t) */		\n\
+	movq	%rcx,%rax	/* return dst */			\n\
+	jmp	_memcpy							\n\
 	.seh_endproc							\n\
 									\n\
 	.globl  wmemcpy							\n\
@@ -888,9 +905,21 @@ wmemmove:								\n\
 wmemcpy:								\n\
 	.seh_endprologue						\n\
 	shlq	$1,%r8		/* cnt * sizeof (wchar_t) */		\n\
-	jmp	memcpy							\n\
+	movq	%rcx,%rax	/* return dst */			\n\
+	jmp	_memcpy							\n\
+	.seh_endproc							\n\
+									\n\
+	.globl  wmempcpy						\n\
+	.seh_proc wmempcpy						\n\
+wmempcpy:								\n\
+	.seh_endprologue						\n\
+	shlq	$1,%r8		/* cnt * sizeof (wchar_t) */		\n\
+	movq	%rcx,%rax	/* return dst */			\n\
+	addq	%r8,%rax	/*         + n */			\n\
+	jmp	_memcpy							\n\
 	.seh_endproc							\n\
 ");
+
 #endif
 
 /* Signal the thread name to any attached debugger
@@ -930,4 +959,56 @@ SetThreadName(DWORD dwThreadID, const char* threadName)
     }
   __except (NO_ERROR)
   __endtry
+}
+
+#define add_size(p,s) ((p) = ((__typeof__(p))((PBYTE)(p)+(s))))
+
+WORD
+__get_cpus_per_group (void)
+{
+  static WORD num_cpu_per_group = 0;
+
+  tmp_pathbuf tp;
+
+  if (num_cpu_per_group)
+    return num_cpu_per_group;
+
+  num_cpu_per_group = 64;
+
+  PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX lpi =
+            (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX) tp.c_get ();
+  DWORD lpi_size = NT_MAX_PATH;
+
+  /* Fake a SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX group info block on Vista
+     systems.  This may be over the top but if the below code just using
+     ActiveProcessorCount turns out to be insufficient, we can build on that. */
+  if (!wincap.has_processor_groups ()
+      || !GetLogicalProcessorInformationEx (RelationGroup, lpi, &lpi_size))
+    {
+      lpi_size = sizeof *lpi;
+      lpi->Relationship = RelationGroup;
+      lpi->Size = lpi_size;
+      lpi->Group.MaximumGroupCount = 1;
+      lpi->Group.ActiveGroupCount = 1;
+      lpi->Group.GroupInfo[0].MaximumProcessorCount = wincap.cpu_count ();
+      lpi->Group.GroupInfo[0].ActiveProcessorCount
+        = __builtin_popcountl (wincap.cpu_mask ());
+      lpi->Group.GroupInfo[0].ActiveProcessorMask = wincap.cpu_mask ();
+    }
+
+  PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX plpi = lpi;
+  for (DWORD size = lpi_size; size > 0;
+       size -= plpi->Size, add_size (plpi, plpi->Size))
+    if (plpi->Relationship == RelationGroup)
+      {
+        /* There are systems with a MaximumProcessorCount not reflecting the
+	   actually available CPUs.  The ActiveProcessorCount is correct
+	   though.  So we just use ActiveProcessorCount for now, hoping for
+	   the best. */
+        num_cpu_per_group
+                = plpi->Group.GroupInfo[0].ActiveProcessorCount;
+        break;
+      }
+
+  return num_cpu_per_group;
 }

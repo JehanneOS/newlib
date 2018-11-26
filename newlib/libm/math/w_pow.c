@@ -21,18 +21,10 @@ INDEX
 	powf
 
 
-ANSI_SYNOPSIS
+SYNOPSIS
 	#include <math.h>
 	double pow(double <[x]>, double <[y]>);
 	float powf(float <[x]>, float <[y]>);
-
-TRAD_SYNOPSIS
-	#include <math.h>
-	double pow(<[x]>, <[y]>);
-	double <[x]>, <[y]>;
-
-	float powf(<[x]>, <[y]>);
-	float <[x]>, <[y]>;
 
 DESCRIPTION
 	<<pow>> and <<powf>> calculate <[x]> raised to the exponent <[y]>.
@@ -60,6 +52,7 @@ PORTABILITY
  */
 
 #include "fdlibm.h"
+#if __OBSOLETE_MATH
 #include <errno.h>
 
 #ifndef _DOUBLE_IS_32BITS
@@ -215,7 +208,7 @@ PORTABILITY
 }
 
 #endif /* defined(_DOUBLE_IS_32BITS) */
-
+#endif /* __OBSOLETE_MATH */
 
 
 

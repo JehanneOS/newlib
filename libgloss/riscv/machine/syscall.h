@@ -2,7 +2,7 @@
 
    This copyrighted material is made available to anyone wishing to use,
    modify, copy, or redistribute it subject to the terms and conditions
-   of the BSD License.   This program is distributed in the hope that
+   of the FreeBSD License.   This program is distributed in the hope that
    it will be useful, but WITHOUT ANY WARRANTY expressed or implied,
    including the implied warranties of MERCHANTABILITY or FITNESS FOR
    A PARTICULAR PURPOSE.  A copy of this license is available at
@@ -53,30 +53,5 @@
 #define SYS_lstat 1039
 #define SYS_time 1062
 #define SYS_getmainvars 2011
-
-extern long __syscall_error(long);
-
-static inline long
-__internal_syscall(long n, long _a0, long _a1, long _a2, long _a3)
-{
-  register long a0 asm("a0") = _a0;
-  register long a1 asm("a1") = _a1;
-  register long a2 asm("a2") = _a2;
-  register long a3 asm("a3") = _a3;
-
-#ifdef __riscv_32e
-  register long syscall_id asm("t0") = n;
-#else
-  register long syscall_id asm("a7") = n;
-#endif
-
-  asm volatile ("scall"
-		: "+r"(a0) : "r"(a1), "r"(a2), "r"(a3), "r"(syscall_id));
-
-  if (a0 < 0)
-    return __syscall_error (a0);
-  else
-    return a0;
-}
 
 #endif

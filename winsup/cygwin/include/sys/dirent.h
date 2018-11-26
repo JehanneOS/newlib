@@ -15,7 +15,7 @@
 
 #define __DIRENT_VERSION	2
 
-#ifndef __x86_64__
+#ifdef __i386__
 #pragma pack(push,4)
 #endif
 #define _DIRENT_HAVE_D_TYPE
@@ -28,7 +28,7 @@ struct dirent
   __uint32_t __d_internal1;
   char d_name[NAME_MAX + 1];
 };
-#ifndef __x86_64__
+#ifdef __i386__
 #pragma pack(pop)
 #endif
 
@@ -40,7 +40,7 @@ struct dirent
 #define __DIRENT_COOKIE 0xdede4242
 #endif
 
-#ifndef __x86_64__
+#ifdef __i386__
 #pragma pack(push,4)
 #endif
 typedef struct __DIR
@@ -56,40 +56,8 @@ typedef struct __DIR
   void *__fh;
   unsigned __flags;
 } DIR;
-#ifndef __x86_64__
+#ifdef __i386__
 #pragma pack(pop)
-#endif
-
-DIR *opendir (const char *);
-DIR *fdopendir (int);
-struct dirent *readdir (DIR *);
-int readdir_r (DIR * __restrict, struct dirent * __restrict,
-	       struct dirent ** __restrict);
-void rewinddir (DIR *);
-int closedir (DIR *);
-
-int dirfd (DIR *);
-
-#if __MISC_VISIBLE || __XSI_VISIBLE
-#ifndef __INSIDE_CYGWIN__
-long telldir (DIR *);
-void seekdir (DIR *, long loc);
-#endif
-#endif
-
-#if __MISC_VISIBLE || __POSIX_VISIBLE >= 200809
-int scandir (const char *__dir,
-	     struct dirent ***__namelist,
-	     int (*select) (const struct dirent *),
-	     int (*compar) (const struct dirent **, const struct dirent **));
-int alphasort (const struct dirent **__a, const struct dirent **__b);
-#endif
-
-#if __GNU_VISIBLE
-int scandirat (int __dirfd, const char *__dir, struct dirent ***__namelist,
-	       int (*select) (const struct dirent *),
-	       int (*compar) (const struct dirent **, const struct dirent **));
-int versionsort (const struct dirent **__a, const struct dirent **__b);
 #endif
 
 #if __BSD_VISIBLE

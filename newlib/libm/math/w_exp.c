@@ -19,18 +19,10 @@ INDEX
 INDEX
 	expf
 
-ANSI_SYNOPSIS
+SYNOPSIS
 	#include <math.h>
 	double exp(double <[x]>);
 	float expf(float <[x]>);
-
-TRAD_SYNOPSIS
-	#include <math.h>
-	double exp(<[x]>);
-	double <[x]>;
-
-	float expf(<[x]>);
-	float <[x]>;
 
 DESCRIPTION
 	<<exp>> and <<expf>> calculate the exponential of <[x]>, that is, 
@@ -61,6 +53,7 @@ PORTABILITY
  */
 
 #include "fdlibm.h"
+#if __OBSOLETE_MATH
 #include <errno.h>
 
 #ifndef _DOUBLE_IS_32BITS
@@ -134,3 +127,4 @@ u_threshold= -7.45133219101941108420e+02;  /* 0xc0874910, 0xD52D3051 */
 }
 
 #endif /* defined(_DOUBLE_IS_32BITS) */
+#endif /* __OBSOLETE_MATH */

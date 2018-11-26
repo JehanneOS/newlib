@@ -19,7 +19,7 @@ INDEX
 INDEX
 	exp2f
 
-ANSI_SYNOPSIS
+SYNOPSIS
 	#include <math.h>
 	double exp2(double <[x]>);
 	float exp2f(float <[x]>);
@@ -52,6 +52,7 @@ PORTABILITY
  */
 
 #include "fdlibm.h"
+#if __OBSOLETE_MATH
 #include <errno.h>
 #include <math.h>
 
@@ -68,3 +69,4 @@ PORTABILITY
 }
 
 #endif /* defined(_DOUBLE_IS_32BITS) */
+#endif /* __OBSOLETE_MATH */

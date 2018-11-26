@@ -77,7 +77,7 @@ COMMON_CFLAGS=-MMD ${$(*F)_CFLAGS} -Werror -fmerge-constants -ftracer $(CCEXTRA)
 ifeq ($(target_cpu),x86_64)
 COMMON_CFLAGS+=-mcmodel=small
 endif
-COMPILE.cc+=${COMMON_CFLAGS}
+COMPILE.cc+=${COMMON_CFLAGS} -std=gnu++98
 COMPILE.c+=${COMMON_CFLAGS}
 
 AR:=@AR@
@@ -218,7 +218,6 @@ MATH_OFILES:= \
 	lrintl.o \
 	lroundl.o \
 	modfl.o \
-	nanl.o \
 	nearbyint.o \
 	nearbyintf.o \
 	nearbyintl.o \
@@ -249,6 +248,7 @@ MATH_OFILES:= \
 
 DLL_OFILES:= \
 	advapi32.o \
+	aio.o \
 	arc4random_stir.o \
 	assert.o \
 	autoload.o \
@@ -283,7 +283,6 @@ DLL_OFILES:= \
 	fhandler_dsp.o \
 	fhandler_fifo.o \
 	fhandler_floppy.o \
-	fhandler_mailslot.o \
 	fhandler_netdrive.o \
 	fhandler_nodevice.o \
 	fhandler_proc.o \
@@ -296,6 +295,9 @@ DLL_OFILES:= \
 	fhandler_registry.o \
 	fhandler_serial.o \
 	fhandler_socket.o \
+	fhandler_socket_inet.o \
+	fhandler_socket_local.o \
+	fhandler_socket_unix.o \
 	fhandler_tape.o \
 	fhandler_termios.o \
 	fhandler_tty.o \
@@ -333,6 +335,7 @@ DLL_OFILES:= \
 	mktemp.o \
 	mmap.o \
 	msg.o \
+	msgcat.o \
 	mount.o \
 	net.o \
 	netdb.o \
@@ -540,7 +543,7 @@ endif
 API_VER:=$(srcdir)/include/cygwin/version.h
 
 LIB_NAME:=libcygwin.a
-SUBLIBS:=libpthread.a libutil.a ${CURDIR}/libm.a ${CURDIR}/libc.a libdl.a libresolv.a librt.a libacl.a
+SUBLIBS:=libpthread.a libutil.a ${CURDIR}/libm.a ${CURDIR}/libc.a libdl.a libresolv.a librt.a libacl.a libssp.a
 EXTRALIBS:=libautomode.a libbinmode.a libtextmode.a libtextreadmode.a
 INSTOBJS:=automode.o binmode.o textmode.o textreadmode.o
 TARGET_LIBS:=$(LIB_NAME) $(CYGWIN_START) $(GMON_START) $(LIBGMON_A) $(SUBLIBS) $(INSTOBJS) $(EXTRALIBS)
@@ -745,6 +748,9 @@ librt.a: ${LIB_NAME} posix_ipc.o
 libacl.a: ${LIB_NAME} sec_posixacl.o
 	${speclib} ${@F}
 
+libssp.a: ${LIB_NAME} $(newlib_build)/libc/ssp/lib.a
+	${speclib} ${@F}
+
 ${EXTRALIBS}: lib%.a: %.o
 	$(AR) cru $@ $?
 
@@ -774,7 +780,11 @@ sigfe.o: sigfe.s $(srcdir)/$(TLSOFFSETS_H)
 ctags: CTAGS
 tags:  CTAGS
 CTAGS:
-	-cd $(srcdir) && ctags -R --regex-C++='/^([a-zA-Z0-9_]*::[a-zA-Z0-9_]*) /\1/f/' .
+	-cd $(srcdir) && \
+	ctags -R --c++-kinds=+p --fields=+iaS --extra=+q \
+	--regex-C++='/EXPORT_ALIAS *\([a-zA-Z0-9_]*, *([a-zA-Z0-9_]*)\)/\1/' \
+	--regex-C++='/__ASMNAME *\("([a-zA-Z0-9_]+)"\)/\1/' \
+	@newlib_headers@ .
 
 deps:=${wildcard *.d}
 ifneq (,$(deps))

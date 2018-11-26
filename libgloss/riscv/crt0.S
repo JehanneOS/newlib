@@ -2,7 +2,7 @@
 
    This copyrighted material is made available to anyone wishing to use,
    modify, copy, or redistribute it subject to the terms and conditions
-   of the BSD License.   This program is distributed in the hope that
+   of the FreeBSD License.   This program is distributed in the hope that
    it will be useful, but WITHOUT ANY WARRANTY expressed or implied,
    including the implied warranties of MERCHANTABILITY or FITNESS FOR
    A PARTICULAR PURPOSE.  A copy of this license is available at
@@ -41,14 +41,3 @@ _start:
   call    main
   tail    exit
   .size  _start, .-_start
-
-  .global _init
-  .type   _init, @function
-  .global _fini
-  .type   _fini, @function
-_init:
-_fini:
-  # These don't have to do anything since we use init_array/fini_array.
-  ret
-  .size  _init, .-_init
-  .size  _fini, .-_fini

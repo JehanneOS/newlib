@@ -1,5 +1,6 @@
 /* Copyright (c) 2002 Red Hat Incorporated.
    All rights reserved.
+   Modified (m) 2017 Thomas Wolff to refer to generated Unicode data tables.
 
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions are met:
@@ -37,17 +38,12 @@ INDEX
 INDEX
 	iswpunct_l
 
-ANSI_SYNOPSIS
+SYNOPSIS
 	#include <wctype.h>
 	int iswpunct(wint_t <[c]>);
 
 	#include <wctype.h>
 	int iswpunct_l(wint_t <[c]>, locale_t <[locale]>);
-
-TRAD_SYNOPSIS
-	#include <wctype.h>
-	int iswpunct(<[c]>)
-	wint_t <[c]>;
 
 DESCRIPTION
 <<iswpunct>> is a function which classifies wide-character values that
@@ -67,14 +63,10 @@ PORTABILITY
 No supporting OS subroutines are required.
 */
 #include <_ansi.h>
-#include <newlib.h>
 #include <wctype.h>
-#include <string.h>
-#include <ctype.h>
-#include "local.h"
 
 int
-_DEFUN(iswpunct,(c), wint_t c)
+iswpunct (wint_t c)
 {
-  return (!iswalnum (c) && iswgraph (c));
+  return iswpunct_l (c, 0);
 }
