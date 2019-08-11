@@ -216,9 +216,7 @@ proc_subproc (DWORD what, uintptr_t val)
 	  vchild->process_state |= PID_INITIALIZING;
 	  vchild->ppid = what == PROC_DETACHED_CHILD ? 1 : myself->pid;	/* always set last */
 	}
-      if (what == PROC_DETACHED_CHILD)
-	break;
-      /* fall through intentionally */
+      break;
 
     case PROC_REATTACH_CHILD:
       procs[nprocs] = vchild;
@@ -422,7 +420,7 @@ _cygtls::remove_pending_sigs ()
 extern "C" int
 sigpending (sigset_t *mask)
 {
-  sigset_t outset = (sigset_t) sig_send (myself, __SIGPENDING, &_my_tls);
+  sigset_t outset = sig_send (myself, __SIGPENDING, &_my_tls);
   if (outset == SIG_BAD_MASK)
     return -1;
   *mask = outset;
@@ -503,7 +501,7 @@ exit_thread (DWORD res)
   ExitThread (res);
 }
 
-int __reg3
+sigset_t __reg3
 sig_send (_pinfo *p, int sig, _cygtls *tls)
 {
   siginfo_t si = {};
@@ -516,7 +514,7 @@ sig_send (_pinfo *p, int sig, _cygtls *tls)
    If pinfo *p == NULL, send to the current process.
    If sending to this process, wait for notification that a signal has
    completed before returning.  */
-int __reg3
+sigset_t __reg3
 sig_send (_pinfo *p, siginfo_t& si, _cygtls *tls)
 {
   int rc = 1;
@@ -748,7 +746,7 @@ out:
   if (si.si_signo != __SIGPENDING)
     /* nothing */;
   else if (!rc)
-    rc = (int) pending;
+    rc = pending;
   else
     rc = SIG_BAD_MASK;
   sigproc_printf ("returning %p from sending signal %d", rc, si.si_signo);
@@ -811,11 +809,23 @@ child_info::child_info (unsigned in_cb, child_info_types chtype,
     }
   sigproc_printf ("subproc_ready %p", subproc_ready);
   /* Create an inheritable handle to pass to the child process.  This will
-     allow the child to duplicate handles from the parent to itself. */
+     allow the child to copy cygheap etc. from the parent to itself.  If
+     we're forking, we also need handle duplicate access. */
   parent = NULL;
+  DWORD perms = PROCESS_QUERY_LIMITED_INFORMATION | PROCESS_VM_READ
+		| PROCESS_VM_OPERATION | SYNCHRONIZE;
+  if (type == _CH_FORK)
+    {
+      perms |= PROCESS_DUP_HANDLE;
+      /* VirtualQueryEx is documented to require PROCESS_QUERY_INFORMATION.
+	 That's true for Windows 7, but PROCESS_QUERY_LIMITED_INFORMATION
+	 appears to be sufficient on Windows 8 and later. */
+      if (wincap.needs_query_information ())
+	perms |= PROCESS_QUERY_INFORMATION;
+    }
+
   if (!DuplicateHandle (GetCurrentProcess (), GetCurrentProcess (),
-			GetCurrentProcess (), &parent, 0, true,
-			DUPLICATE_SAME_ACCESS))
+			GetCurrentProcess (), &parent, perms, TRUE, 0))
     system_printf ("couldn't create handle to myself for child, %E");
 }
 
@@ -861,7 +871,8 @@ void
 child_info_spawn::wait_for_myself ()
 {
   postfork (myself);
-  myself.remember (false);
+  if (myself.remember (false))
+    myself.reattach ();
   WaitForSingleObject (ev, INFINITE);
 }
 
@@ -1089,7 +1100,10 @@ child_info_fork::abort (const char *fmt, ...)
     {
       va_list ap;
       va_start (ap, fmt);
-      strace_vprintf (SYSTEM, fmt, ap);
+      if (silentfail ())
+	strace_vprintf (DEBUG, fmt, ap);
+      else
+	strace_vprintf (SYSTEM, fmt, ap);
       TerminateProcess (GetCurrentProcess (), EXITCODE_FORK_FAILED);
     }
   if (retry > 0)
@@ -1320,8 +1334,13 @@ wait_sig (VOID *)
 	    *pack.mask = 0;
 	    tl_entry = cygheap->find_tls (pack.sigtls);
 	    while ((q = q->next))
-	      if (pack.sigtls->sigmask & (bit = SIGTOMASK (q->si.si_signo)))
-		*pack.mask |= bit;
+	      {
+		/* Skip thread-specific signals for other threads. */
+		if (q->sigtls && pack.sigtls != q->sigtls)
+		  continue;
+		if (pack.sigtls->sigmask & (bit = SIGTOMASK (q->si.si_signo)))
+		  *pack.mask |= bit;
+	      }
 	    cygheap->unlock_tls (tl_entry);
 	  }
 	  break;
