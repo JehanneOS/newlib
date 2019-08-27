@@ -53,9 +53,10 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
+@USE_LIBTOOL_FALSE@am__append_1 = $(AM_CFLAGS)
 DIST_COMMON = $(srcdir)/../../Makefile.shared $(srcdir)/Makefile.in \
 	$(srcdir)/Makefile.am
-subdir = search
+subdir = fenv
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/../../libtool.m4 \
 	$(top_srcdir)/../../ltoptions.m4 \
@@ -72,42 +73,27 @@ LIBRARIES = $(noinst_LIBRARIES)
 ARFLAGS = cru
 lib_a_AR = $(AR) $(ARFLAGS)
 lib_a_LIBADD =
-am__objects_1 = lib_a-bsearch.$(OBJEXT) lib_a-ndbm.$(OBJEXT) \
-	lib_a-qsort.$(OBJEXT)
-@ELIX_LEVEL_1_FALSE@am__objects_2 = lib_a-hash.$(OBJEXT) \
-@ELIX_LEVEL_1_FALSE@	lib_a-hash_bigkey.$(OBJEXT) \
-@ELIX_LEVEL_1_FALSE@	lib_a-hash_buf.$(OBJEXT) \
-@ELIX_LEVEL_1_FALSE@	lib_a-hash_func.$(OBJEXT) \
-@ELIX_LEVEL_1_FALSE@	lib_a-hash_log2.$(OBJEXT) \
-@ELIX_LEVEL_1_FALSE@	lib_a-hash_page.$(OBJEXT) \
-@ELIX_LEVEL_1_FALSE@	lib_a-hcreate.$(OBJEXT) \
-@ELIX_LEVEL_1_FALSE@	lib_a-hcreate_r.$(OBJEXT) \
-@ELIX_LEVEL_1_FALSE@	lib_a-tdelete.$(OBJEXT) \
-@ELIX_LEVEL_1_FALSE@	lib_a-tdestroy.$(OBJEXT) \
-@ELIX_LEVEL_1_FALSE@	lib_a-tfind.$(OBJEXT) \
-@ELIX_LEVEL_1_FALSE@	lib_a-tsearch.$(OBJEXT) \
-@ELIX_LEVEL_1_FALSE@	lib_a-twalk.$(OBJEXT)
-@ELIX_LEVEL_1_FALSE@@ELIX_LEVEL_2_FALSE@@ELIX_LEVEL_3_FALSE@am__objects_3 = lib_a-bsd_qsort_r.$(OBJEXT) \
-@ELIX_LEVEL_1_FALSE@@ELIX_LEVEL_2_FALSE@@ELIX_LEVEL_3_FALSE@	lib_a-qsort_r.$(OBJEXT)
-@USE_LIBTOOL_FALSE@am_lib_a_OBJECTS = $(am__objects_1) \
-@USE_LIBTOOL_FALSE@	$(am__objects_2) $(am__objects_3)
+am__objects_1 = lib_a-feclearexcept.$(OBJEXT) \
+	lib_a-fe_dfl_env.$(OBJEXT) lib_a-fegetenv.$(OBJEXT) \
+	lib_a-fegetexceptflag.$(OBJEXT) lib_a-fegetround.$(OBJEXT) \
+	lib_a-feholdexcept.$(OBJEXT) lib_a-feraiseexcept.$(OBJEXT) \
+	lib_a-fesetenv.$(OBJEXT) lib_a-fesetexceptflag.$(OBJEXT) \
+	lib_a-fesetround.$(OBJEXT) lib_a-fetestexcept.$(OBJEXT) \
+	lib_a-feupdateenv.$(OBJEXT)
+@USE_LIBTOOL_FALSE@am_lib_a_OBJECTS = $(am__objects_1)
 lib_a_OBJECTS = $(am_lib_a_OBJECTS)
 LTLIBRARIES = $(noinst_LTLIBRARIES)
-libsearch_la_LIBADD =
-am__objects_4 = bsearch.lo ndbm.lo qsort.lo
-@ELIX_LEVEL_1_FALSE@am__objects_5 = hash.lo hash_bigkey.lo hash_buf.lo \
-@ELIX_LEVEL_1_FALSE@	hash_func.lo hash_log2.lo hash_page.lo \
-@ELIX_LEVEL_1_FALSE@	hcreate.lo hcreate_r.lo tdelete.lo \
-@ELIX_LEVEL_1_FALSE@	tdestroy.lo tfind.lo tsearch.lo twalk.lo
-@ELIX_LEVEL_1_FALSE@@ELIX_LEVEL_2_FALSE@@ELIX_LEVEL_3_FALSE@am__objects_6 = bsd_qsort_r.lo \
-@ELIX_LEVEL_1_FALSE@@ELIX_LEVEL_2_FALSE@@ELIX_LEVEL_3_FALSE@	qsort_r.lo
-@USE_LIBTOOL_TRUE@am_libsearch_la_OBJECTS = $(am__objects_4) \
-@USE_LIBTOOL_TRUE@	$(am__objects_5) $(am__objects_6)
-libsearch_la_OBJECTS = $(am_libsearch_la_OBJECTS)
-libsearch_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+libcommon_la_LIBADD =
+am__objects_2 = feclearexcept.lo fe_dfl_env.lo fegetenv.lo \
+	fegetexceptflag.lo fegetround.lo feholdexcept.lo \
+	feraiseexcept.lo fesetenv.lo fesetexceptflag.lo fesetround.lo \
+	fetestexcept.lo feupdateenv.lo
+@USE_LIBTOOL_TRUE@am_libcommon_la_OBJECTS = $(am__objects_2)
+libcommon_la_OBJECTS = $(am_libcommon_la_OBJECTS)
+libcommon_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(libsearch_la_LDFLAGS) $(LDFLAGS) -o $@
-@USE_LIBTOOL_TRUE@am_libsearch_la_rpath =
+	$(libcommon_la_LDFLAGS) $(LDFLAGS) -o $@
+@USE_LIBTOOL_TRUE@am_libcommon_la_rpath =
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp =
 am__depfiles_maybe =
@@ -120,7 +106,7 @@ CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-SOURCES = $(lib_a_SOURCES) $(libsearch_la_SOURCES)
+SOURCES = $(lib_a_SOURCES) $(libcommon_la_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -144,7 +130,6 @@ CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
-CRT0 = @CRT0@
 CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
@@ -165,22 +150,7 @@ INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
-LIBC_EXTRA_DEF = @LIBC_EXTRA_DEF@
-LIBC_EXTRA_LIB = @LIBC_EXTRA_LIB@
-LIBC_MACHINE_LIB = @LIBC_MACHINE_LIB@
-LIBC_POSIX_DEF = @LIBC_POSIX_DEF@
-LIBC_POSIX_LIB = @LIBC_POSIX_LIB@
-LIBC_SIGNAL_DEF = @LIBC_SIGNAL_DEF@
-LIBC_SIGNAL_LIB = @LIBC_SIGNAL_LIB@
-LIBC_STDIO64_DEF = @LIBC_STDIO64_DEF@
-LIBC_STDIO64_LIB = @LIBC_STDIO64_LIB@
-LIBC_STDIO_DEF = @LIBC_STDIO_DEF@
-LIBC_STDIO_LIB = @LIBC_STDIO_LIB@
-LIBC_SYSCALL_LIB = @LIBC_SYSCALL_LIB@
-LIBC_SYS_LIB = @LIBC_SYS_LIB@
-LIBC_UNIX_LIB = @LIBC_UNIX_LIB@
-LIBC_XDR_DEF = @LIBC_XDR_DEF@
-LIBC_XDR_LIB = @LIBC_XDR_LIB@
+LIBM_MACHINE_LIB = @LIBM_MACHINE_LIB@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
@@ -237,7 +207,6 @@ datarootdir = @datarootdir@
 docdir = @docdir@
 dvidir = @dvidir@
 exec_prefix = @exec_prefix@
-extra_dir = @extra_dir@
 host = @host@
 host_alias = @host_alias@
 host_cpu = @host_cpu@
@@ -275,52 +244,18 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AUTOMAKE_OPTIONS = cygnus
 INCLUDES = $(NEWLIB_CFLAGS) $(CROSS_CFLAGS) $(TARGET_CFLAGS)
-GENERAL_SOURCES = \
-	bsearch.c \
-	db_local.h \
-	extern.h \
-	hash.h \
-	ndbm.c \
-	page.h \
-	qsort.c
+src = feclearexcept.c fe_dfl_env.c fegetenv.c fegetexceptflag.c \
+	fegetround.c feholdexcept.c feraiseexcept.c fesetenv.c \
+	fesetexceptflag.c fesetround.c fetestexcept.c feupdateenv.c
 
-@ELIX_LEVEL_1_FALSE@ELIX_2_SOURCES = \
-@ELIX_LEVEL_1_FALSE@	hash.c \
-@ELIX_LEVEL_1_FALSE@	hash_bigkey.c \
-@ELIX_LEVEL_1_FALSE@	hash_buf.c \
-@ELIX_LEVEL_1_FALSE@	hash_func.c \
-@ELIX_LEVEL_1_FALSE@	hash_log2.c \
-@ELIX_LEVEL_1_FALSE@	hash_page.c \
-@ELIX_LEVEL_1_FALSE@	hcreate.c \
-@ELIX_LEVEL_1_FALSE@	hcreate_r.c \
-@ELIX_LEVEL_1_FALSE@	tdelete.c \
-@ELIX_LEVEL_1_FALSE@	tdestroy.c \
-@ELIX_LEVEL_1_FALSE@	tfind.c \
-@ELIX_LEVEL_1_FALSE@	tsearch.c \
-@ELIX_LEVEL_1_FALSE@	twalk.c
-
-@ELIX_LEVEL_1_TRUE@ELIX_2_SOURCES = 
-@ELIX_LEVEL_1_FALSE@@ELIX_LEVEL_2_FALSE@@ELIX_LEVEL_3_FALSE@ELIX_4_SOURCES = \
-@ELIX_LEVEL_1_FALSE@@ELIX_LEVEL_2_FALSE@@ELIX_LEVEL_3_FALSE@	bsd_qsort_r.c \
-@ELIX_LEVEL_1_FALSE@@ELIX_LEVEL_2_FALSE@@ELIX_LEVEL_3_FALSE@	qsort_r.c
-
-@ELIX_LEVEL_1_FALSE@@ELIX_LEVEL_2_FALSE@@ELIX_LEVEL_3_TRUE@ELIX_4_SOURCES = 
-@ELIX_LEVEL_1_FALSE@@ELIX_LEVEL_2_TRUE@ELIX_4_SOURCES = 
-@ELIX_LEVEL_1_TRUE@ELIX_4_SOURCES = 
-libsearch_la_LDFLAGS = -Xcompiler -nostdlib
-@USE_LIBTOOL_TRUE@noinst_LTLIBRARIES = libsearch.la
-@USE_LIBTOOL_TRUE@libsearch_la_SOURCES = $(GENERAL_SOURCES) $(ELIX_2_SOURCES) $(ELIX_4_SOURCES)
-@USE_LIBTOOL_FALSE@noinst_DATA = 
+libcommon_la_LDFLAGS = -Xcompiler -nostdlib
+lib_a_CFLAGS = -fbuiltin -fno-math-errno $(am__append_1)
+@USE_LIBTOOL_TRUE@noinst_LTLIBRARIES = libcommon.la
+@USE_LIBTOOL_TRUE@libcommon_la_SOURCES = $(src)
+@USE_LIBTOOL_FALSE@noinst_DATA =
 @USE_LIBTOOL_TRUE@noinst_DATA = objectlist.awk.in
 @USE_LIBTOOL_FALSE@noinst_LIBRARIES = lib.a
-@USE_LIBTOOL_FALSE@lib_a_SOURCES = $(GENERAL_SOURCES) $(ELIX_2_SOURCES) $(ELIX_4_SOURCES)
-@USE_LIBTOOL_FALSE@lib_a_CFLAGS = $(AM_CFLAGS)
-CHEWOUT_FILES = \
-	bsearch.def \
-	qsort.def \
-	qsort_r.def
-
-CHAPTERS = 
+@USE_LIBTOOL_FALSE@lib_a_SOURCES = $(src)
 
 #
 # documentation rules
@@ -331,6 +266,12 @@ DOCBOOK_CHEW = ${top_srcdir}/../doc/makedocbook.py
 DOCBOOK_OUT_FILES = $(CHEWOUT_FILES:.def=.xml)
 DOCBOOK_CHAPTERS = $(CHAPTERS:.tex=.xml)
 CLEANFILES = $(CHEWOUT_FILES) $(DOCBOOK_OUT_FILES)
+CHEWOUT_FILES = feclearexcept.def fegetenv.def \
+	fegetexceptflag.def fegetround.def feholdexcept.def \
+	feraiseexcept.def fesetenv.def fesetexceptflag.def fesetround.def \
+	fetestexcept.def feupdateenv.def
+
+CHAPTERS = fenv.tex
 all: all-am
 
 .SUFFIXES:
@@ -344,9 +285,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(srcdir)/..
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --cygnus search/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --cygnus fenv/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --cygnus search/Makefile
+	  $(AUTOMAKE) --cygnus fenv/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -369,7 +310,7 @@ $(am__aclocal_m4_deps):
 
 clean-noinstLIBRARIES:
 	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
-lib.a: $(lib_a_OBJECTS) $(lib_a_DEPENDENCIES) $(EXTRA_lib_a_DEPENDENCIES) 
+lib.a: $(lib_a_OBJECTS) $(lib_a_DEPENDENCIES) $(EXTRA_lib_a_DEPENDENCIES)
 	-rm -f lib.a
 	$(lib_a_AR) lib.a $(lib_a_OBJECTS) $(lib_a_LIBADD)
 	$(RANLIB) lib.a
@@ -382,8 +323,8 @@ clean-noinstLTLIBRARIES:
 	  echo "rm -f \"$${dir}/so_locations\""; \
 	  rm -f "$${dir}/so_locations"; \
 	done
-libsearch.la: $(libsearch_la_OBJECTS) $(libsearch_la_DEPENDENCIES) $(EXTRA_libsearch_la_DEPENDENCIES) 
-	$(libsearch_la_LINK) $(am_libsearch_la_rpath) $(libsearch_la_OBJECTS) $(libsearch_la_LIBADD) $(LIBS)
+libcommon.la: $(libcommon_la_OBJECTS) $(libcommon_la_DEPENDENCIES) $(EXTRA_libcommon_la_DEPENDENCIES)
+	$(libcommon_la_LINK) $(am_libcommon_la_rpath) $(libcommon_la_OBJECTS) $(libcommon_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -400,113 +341,77 @@ distclean-compile:
 .c.lo:
 	$(LTCOMPILE) -c -o $@ $<
 
-lib_a-bsearch.o: bsearch.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-bsearch.o `test -f 'bsearch.c' || echo '$(srcdir)/'`bsearch.c
+lib_a-feclearexcept.o: feclearexcept.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-feclearexcept.o `test -f 'feclearexcept.c' || echo '$(srcdir)/'`feclearexcept.c
 
-lib_a-bsearch.obj: bsearch.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-bsearch.obj `if test -f 'bsearch.c'; then $(CYGPATH_W) 'bsearch.c'; else $(CYGPATH_W) '$(srcdir)/bsearch.c'; fi`
+lib_a-feclearexcept.obj: feclearexcept.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-feclearexcept.obj `if test -f 'feclearexcept.c'; then $(CYGPATH_W) 'feclearexcept.c'; else $(CYGPATH_W) '$(srcdir)/feclearexcept.c'; fi`
 
-lib_a-ndbm.o: ndbm.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-ndbm.o `test -f 'ndbm.c' || echo '$(srcdir)/'`ndbm.c
+lib_a-fe_dfl_env.o: fe_dfl_env.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-fe_dfl_env.o `test -f 'fe_dfl_env.c' || echo '$(srcdir)/'`fe_dfl_env.c
 
-lib_a-ndbm.obj: ndbm.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-ndbm.obj `if test -f 'ndbm.c'; then $(CYGPATH_W) 'ndbm.c'; else $(CYGPATH_W) '$(srcdir)/ndbm.c'; fi`
+lib_a-fe_dfl_env.obj: fe_dfl_env.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-fe_dfl_env.obj `if test -f 'fe_dfl_env.c'; then $(CYGPATH_W) 'fe_dfl_env.c'; else $(CYGPATH_W) '$(srcdir)/fe_dfl_env.c'; fi`
 
-lib_a-qsort.o: qsort.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-qsort.o `test -f 'qsort.c' || echo '$(srcdir)/'`qsort.c
+lib_a-fegetenv.o: fegetenv.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-fegetenv.o `test -f 'fegetenv.c' || echo '$(srcdir)/'`fegetenv.c
 
-lib_a-qsort.obj: qsort.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-qsort.obj `if test -f 'qsort.c'; then $(CYGPATH_W) 'qsort.c'; else $(CYGPATH_W) '$(srcdir)/qsort.c'; fi`
+lib_a-fegetenv.obj: fegetenv.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-fegetenv.obj `if test -f 'fegetenv.c'; then $(CYGPATH_W) 'fegetenv.c'; else $(CYGPATH_W) '$(srcdir)/fegetenv.c'; fi`
 
-lib_a-hash.o: hash.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-hash.o `test -f 'hash.c' || echo '$(srcdir)/'`hash.c
+lib_a-fegetexceptflag.o: fegetexceptflag.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-fegetexceptflag.o `test -f 'fegetexceptflag.c' || echo '$(srcdir)/'`fegetexceptflag.c
 
-lib_a-hash.obj: hash.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-hash.obj `if test -f 'hash.c'; then $(CYGPATH_W) 'hash.c'; else $(CYGPATH_W) '$(srcdir)/hash.c'; fi`
+lib_a-fegetexceptflag.obj: fegetexceptflag.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-fegetexceptflag.obj `if test -f 'fegetexceptflag.c'; then $(CYGPATH_W) 'fegetexceptflag.c'; else $(CYGPATH_W) '$(srcdir)/fegetexceptflag.c'; fi`
 
-lib_a-hash_bigkey.o: hash_bigkey.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-hash_bigkey.o `test -f 'hash_bigkey.c' || echo '$(srcdir)/'`hash_bigkey.c
+lib_a-fegetround.o: fegetround.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-fegetround.o `test -f 'fegetround.c' || echo '$(srcdir)/'`fegetround.c
 
-lib_a-hash_bigkey.obj: hash_bigkey.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-hash_bigkey.obj `if test -f 'hash_bigkey.c'; then $(CYGPATH_W) 'hash_bigkey.c'; else $(CYGPATH_W) '$(srcdir)/hash_bigkey.c'; fi`
+lib_a-fegetround.obj: fegetround.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-fegetround.obj `if test -f 'fegetround.c'; then $(CYGPATH_W) 'fegetround.c'; else $(CYGPATH_W) '$(srcdir)/fegetround.c'; fi`
 
-lib_a-hash_buf.o: hash_buf.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-hash_buf.o `test -f 'hash_buf.c' || echo '$(srcdir)/'`hash_buf.c
+lib_a-feholdexcept.o: feholdexcept.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-feholdexcept.o `test -f 'feholdexcept.c' || echo '$(srcdir)/'`feholdexcept.c
 
-lib_a-hash_buf.obj: hash_buf.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-hash_buf.obj `if test -f 'hash_buf.c'; then $(CYGPATH_W) 'hash_buf.c'; else $(CYGPATH_W) '$(srcdir)/hash_buf.c'; fi`
+lib_a-feholdexcept.obj: feholdexcept.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-feholdexcept.obj `if test -f 'feholdexcept.c'; then $(CYGPATH_W) 'feholdexcept.c'; else $(CYGPATH_W) '$(srcdir)/feholdexcept.c'; fi`
 
-lib_a-hash_func.o: hash_func.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-hash_func.o `test -f 'hash_func.c' || echo '$(srcdir)/'`hash_func.c
+lib_a-feraiseexcept.o: feraiseexcept.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-feraiseexcept.o `test -f 'feraiseexcept.c' || echo '$(srcdir)/'`feraiseexcept.c
 
-lib_a-hash_func.obj: hash_func.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-hash_func.obj `if test -f 'hash_func.c'; then $(CYGPATH_W) 'hash_func.c'; else $(CYGPATH_W) '$(srcdir)/hash_func.c'; fi`
+lib_a-feraiseexcept.obj: feraiseexcept.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-feraiseexcept.obj `if test -f 'feraiseexcept.c'; then $(CYGPATH_W) 'feraiseexcept.c'; else $(CYGPATH_W) '$(srcdir)/feraiseexcept.c'; fi`
 
-lib_a-hash_log2.o: hash_log2.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-hash_log2.o `test -f 'hash_log2.c' || echo '$(srcdir)/'`hash_log2.c
+lib_a-fesetenv.o: fesetenv.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-fesetenv.o `test -f 'fesetenv.c' || echo '$(srcdir)/'`fesetenv.c
 
-lib_a-hash_log2.obj: hash_log2.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-hash_log2.obj `if test -f 'hash_log2.c'; then $(CYGPATH_W) 'hash_log2.c'; else $(CYGPATH_W) '$(srcdir)/hash_log2.c'; fi`
+lib_a-fesetenv.obj: fesetenv.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-fesetenv.obj `if test -f 'fesetenv.c'; then $(CYGPATH_W) 'fesetenv.c'; else $(CYGPATH_W) '$(srcdir)/fesetenv.c'; fi`
 
-lib_a-hash_page.o: hash_page.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-hash_page.o `test -f 'hash_page.c' || echo '$(srcdir)/'`hash_page.c
+lib_a-fesetexceptflag.o: fesetexceptflag.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-fesetexceptflag.o `test -f 'fesetexceptflag.c' || echo '$(srcdir)/'`fesetexceptflag.c
 
-lib_a-hash_page.obj: hash_page.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-hash_page.obj `if test -f 'hash_page.c'; then $(CYGPATH_W) 'hash_page.c'; else $(CYGPATH_W) '$(srcdir)/hash_page.c'; fi`
+lib_a-fesetexceptflag.obj: fesetexceptflag.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-fesetexceptflag.obj `if test -f 'fesetexceptflag.c'; then $(CYGPATH_W) 'fesetexceptflag.c'; else $(CYGPATH_W) '$(srcdir)/fesetexceptflag.c'; fi`
 
-lib_a-hcreate.o: hcreate.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-hcreate.o `test -f 'hcreate.c' || echo '$(srcdir)/'`hcreate.c
+lib_a-fesetround.o: fesetround.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-fesetround.o `test -f 'fesetround.c' || echo '$(srcdir)/'`fesetround.c
 
-lib_a-hcreate.obj: hcreate.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-hcreate.obj `if test -f 'hcreate.c'; then $(CYGPATH_W) 'hcreate.c'; else $(CYGPATH_W) '$(srcdir)/hcreate.c'; fi`
+lib_a-fesetround.obj: fesetround.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-fesetround.obj `if test -f 'fesetround.c'; then $(CYGPATH_W) 'fesetround.c'; else $(CYGPATH_W) '$(srcdir)/fesetround.c'; fi`
 
-lib_a-hcreate_r.o: hcreate_r.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-hcreate_r.o `test -f 'hcreate_r.c' || echo '$(srcdir)/'`hcreate_r.c
+lib_a-fetestexcept.o: fetestexcept.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-fetestexcept.o `test -f 'fetestexcept.c' || echo '$(srcdir)/'`fetestexcept.c
 
-lib_a-hcreate_r.obj: hcreate_r.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-hcreate_r.obj `if test -f 'hcreate_r.c'; then $(CYGPATH_W) 'hcreate_r.c'; else $(CYGPATH_W) '$(srcdir)/hcreate_r.c'; fi`
+lib_a-fetestexcept.obj: fetestexcept.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-fetestexcept.obj `if test -f 'fetestexcept.c'; then $(CYGPATH_W) 'fetestexcept.c'; else $(CYGPATH_W) '$(srcdir)/fetestexcept.c'; fi`
 
-lib_a-tdelete.o: tdelete.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-tdelete.o `test -f 'tdelete.c' || echo '$(srcdir)/'`tdelete.c
+lib_a-feupdateenv.o: feupdateenv.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-feupdateenv.o `test -f 'feupdateenv.c' || echo '$(srcdir)/'`feupdateenv.c
 
-lib_a-tdelete.obj: tdelete.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-tdelete.obj `if test -f 'tdelete.c'; then $(CYGPATH_W) 'tdelete.c'; else $(CYGPATH_W) '$(srcdir)/tdelete.c'; fi`
-
-lib_a-tdestroy.o: tdestroy.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-tdestroy.o `test -f 'tdestroy.c' || echo '$(srcdir)/'`tdestroy.c
-
-lib_a-tdestroy.obj: tdestroy.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-tdestroy.obj `if test -f 'tdestroy.c'; then $(CYGPATH_W) 'tdestroy.c'; else $(CYGPATH_W) '$(srcdir)/tdestroy.c'; fi`
-
-lib_a-tfind.o: tfind.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-tfind.o `test -f 'tfind.c' || echo '$(srcdir)/'`tfind.c
-
-lib_a-tfind.obj: tfind.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-tfind.obj `if test -f 'tfind.c'; then $(CYGPATH_W) 'tfind.c'; else $(CYGPATH_W) '$(srcdir)/tfind.c'; fi`
-
-lib_a-tsearch.o: tsearch.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-tsearch.o `test -f 'tsearch.c' || echo '$(srcdir)/'`tsearch.c
-
-lib_a-tsearch.obj: tsearch.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-tsearch.obj `if test -f 'tsearch.c'; then $(CYGPATH_W) 'tsearch.c'; else $(CYGPATH_W) '$(srcdir)/tsearch.c'; fi`
-
-lib_a-twalk.o: twalk.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-twalk.o `test -f 'twalk.c' || echo '$(srcdir)/'`twalk.c
-
-lib_a-twalk.obj: twalk.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-twalk.obj `if test -f 'twalk.c'; then $(CYGPATH_W) 'twalk.c'; else $(CYGPATH_W) '$(srcdir)/twalk.c'; fi`
-
-lib_a-bsd_qsort_r.o: bsd_qsort_r.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-bsd_qsort_r.o `test -f 'bsd_qsort_r.c' || echo '$(srcdir)/'`bsd_qsort_r.c
-
-lib_a-bsd_qsort_r.obj: bsd_qsort_r.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-bsd_qsort_r.obj `if test -f 'bsd_qsort_r.c'; then $(CYGPATH_W) 'bsd_qsort_r.c'; else $(CYGPATH_W) '$(srcdir)/bsd_qsort_r.c'; fi`
-
-lib_a-qsort_r.o: qsort_r.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-qsort_r.o `test -f 'qsort_r.c' || echo '$(srcdir)/'`qsort_r.c
-
-lib_a-qsort_r.obj: qsort_r.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-qsort_r.obj `if test -f 'qsort_r.c'; then $(CYGPATH_W) 'qsort_r.c'; else $(CYGPATH_W) '$(srcdir)/qsort_r.c'; fi`
+lib_a-feupdateenv.obj: feupdateenv.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-feupdateenv.obj `if test -f 'feupdateenv.c'; then $(CYGPATH_W) 'feupdateenv.c'; else $(CYGPATH_W) '$(srcdir)/feupdateenv.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -713,6 +618,10 @@ docbook: $(DOCBOOK_OUT_FILES)
 	do \
 	  ${top_srcdir}/../doc/chapter-texi2docbook.py <$(srcdir)/$${chapter%.xml}.tex >../$$chapter ; \
 	done
+
+# A partial dependency list.
+
+$(lib_a_OBJECTS): $(srcdir)/../../libc/include/fenv.h
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
