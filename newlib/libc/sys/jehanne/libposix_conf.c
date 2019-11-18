@@ -426,6 +426,44 @@ jehanne_fprint(2, "_fcntl_r(%d, %d, %d) from %#p\n", fd, cmd, arg, jehanne_getca
 	return POSIX_fcntl(errnop, fd, pcmd, arg);
 }
 
+/* sysconf is here to access <unistd.h> */
+long sysconf(int name)
+{
+	int *errnop = &_REENT->_errno;
+	PosixSysConfNames request = (PosixSysConfNames)name;
+	switch(name){
+	case _SC_ARG_MAX:
+		request = PosixSCNArgMax;
+		break;
+	case _SC_CHILD_MAX:
+		request = PosixSCNChildMax;
+		break;
+	case _SC_HOST_NAME_MAX:
+		request = PosixSCNHostNameMax;
+		break;
+	case _SC_LOGIN_NAME_MAX:
+		request = PosixSCNLoginNameMax;
+		break;
+	case _SC_CLK_TCK:
+		request = PosixSCNClockTicks;
+		break;
+	case _SC_OPEN_MAX:
+		request = PosixSCNOpenMax;
+		break;
+	case _SC_PAGESIZE:
+		request = PosixSCNPageSize;
+		break;
+	case _SC_VERSION:
+		request = PosixSCNPosixVersion;
+		break;
+	case _SC_LINE_MAX:
+		request = PosixSCNLineMax;
+		break;
+	}
+
+	return POSIX_sysconf(errnop, request);
+}
+
 int
 __fail_with_einval(void)
 {
