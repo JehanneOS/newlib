@@ -430,7 +430,7 @@ jehanne_fprint(2, "_fcntl_r(%d, %d, %d) from %#p\n", fd, cmd, arg, jehanne_getca
 long sysconf(int name)
 {
 	int *errnop = &_REENT->_errno;
-	PosixSysConfNames request = (PosixSysConfNames)name;
+	PosixSysConfNames request = 0;
 	switch(name){
 	case _SC_ARG_MAX:
 		request = PosixSCNArgMax;

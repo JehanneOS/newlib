@@ -23,6 +23,11 @@
 typedef unsigned long clock_t;
 typedef unsigned long useconds_t;
 
+struct utimbuf {
+    long actime;       /* access time */
+    long modtime;      /* modification time */
+};
+
 extern void initialize_newlib(int argc, char *argv[]);
 static void newlib(int argc, char *argv[]) __attribute__((noreturn));
 
@@ -351,4 +356,29 @@ pwrite(int fd, const void *buf, size_t count, off_t offset)
 {
 	int *errnop = &_REENT->_errno;
 	return POSIX_pwrite(errnop, fd, buf, count, offset);
+}
+
+int
+utime(const char *filename, const struct utimbuf *times)
+{
+	// TODO: move into libposix
+	extern int __libposix_get_errno(PosixError e);
+	Dir ndir;
+	int *errnop = &_REENT->_errno;
+	if(times == nil || filename == nil) {
+		*errnop = __libposix_get_errno(PosixEACCES);
+		return -1;
+	}
+	if(jehanne_access(filename, AEXIST) != 0){
+		*errnop = __libposix_get_errno(PosixENOENT);
+		return -1;
+	}
+	jehanne_nulldir(&ndir);
+	ndir.atime = times->actime;
+	ndir.mtime = times->modtime;
+	if(jehanne_dirwstat(filename, &ndir) == -1){
+		*errnop = __libposix_get_errno(PosixEPERM);
+		return -1;
+	}
+	return 0;
 }
