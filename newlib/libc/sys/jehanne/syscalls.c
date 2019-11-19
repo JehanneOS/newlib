@@ -382,3 +382,10 @@ utime(const char *filename, const struct utimbuf *times)
 	}
 	return 0;
 }
+
+int
+rmdir(const char *path)
+{
+	int *errnop = &_REENT->_errno;
+	return POSIX_rmdir(errnop, path);
+}
