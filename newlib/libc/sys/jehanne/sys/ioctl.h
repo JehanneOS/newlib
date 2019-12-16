@@ -1,7 +1,7 @@
 /*
  * This file is part of Jehanne.
  *
- * Copyright (C) 2017 Giacomo Tesio <giacomo@tesio.it>
+ * Copyright (C) 2017-2020 Giacomo Tesio <giacomo@tesio.it>
  *
  * This is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -18,6 +18,10 @@
 #ifndef _SYS_IOCTL_H
 #define _SYS_IOCTL_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define TIOCGWINSZ 1
 #define TIOCSWINSZ 2
 
@@ -30,5 +34,9 @@ struct winsize {
 
 
 int ioctl(int fd, int request, ...);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
