@@ -91,7 +91,7 @@ struct Dir {
 extern	void	jehanne_sysfatal(const char*, ...);
 extern	int	jehanne_strcmp(const char*, const char*);
 extern	char*	jehanne_strstr(const char*, const char*);
-extern	int32_t	jehanne_tm2sec(Tm*);
+extern	int	jehanne_tm2sec(Tm*);
 
 #include <posix.h>
 #include <errno.h>
@@ -248,7 +248,7 @@ default_timeval_reader(void *tv, const Tm *time)
 {
 	struct timeval *t = tv;
 
-	t->tv_sec = jehanne_tm2sec(time);
+	t->tv_sec = jehanne_tm2sec((Tm*)time);
 	t->tv_usec = 0;
 
 	return 0;
