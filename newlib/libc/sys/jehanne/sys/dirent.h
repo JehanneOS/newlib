@@ -41,6 +41,9 @@ typedef struct {
 #define dirent64		dirent
 #endif
 
+#ifndef _DIRENT_H_
+/* Newlib's dirent.h already defines these */
+
 DIR *opendir(const char *);
 struct dirent *readdir(DIR *);
 int readdir_r(DIR *__restrict, struct dirent *__restrict,
@@ -49,6 +52,8 @@ void rewinddir(DIR *);
 int dirfd(DIR *);
 DIR *fdopendir(int);
 int closedir(DIR *);
+
+#endif
 
 #ifndef _POSIX_SOURCE
 long telldir (DIR *);
