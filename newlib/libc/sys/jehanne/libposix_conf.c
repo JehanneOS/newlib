@@ -89,6 +89,9 @@ struct Dir {
 #define DMEXEC		0x1		/* mode bit for execute permission */
 
 extern	void	jehanne_sysfatal(const char*, ...);
+extern	int	jehanne_strcmp(const char*, const char*);
+extern	char*	jehanne_strstr(const char*, const char*);
+extern	int32_t	jehanne_tm2sec(Tm*);
 
 #include <posix.h>
 #include <errno.h>
@@ -113,7 +116,7 @@ __stat_reader(struct stat *s, const Dir *d)
 	/* we have to map types to UNIX */
 	if(d->mode & DMDIR)
 		s->st_mode |= _IFDIR;
-	else if(strcmp("cons", d->name) == 0 || strstr(d->name, "tty") != nil){
+	else if(jehanne_strcmp("cons", d->name) == 0 || jehanne_strstr(d->name, "tty") != nil){
 		/* newlib expect consoles to be character devices */
 		s->st_mode |= _IFCHR;
 	} else
