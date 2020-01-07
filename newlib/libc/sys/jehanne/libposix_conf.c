@@ -268,8 +268,10 @@ default_timezone_reader(void *tz, const Tm *time)
 void
 on_process_disposition(int status)
 {
+	extern void __libc_fini_array(void);
 	extern void __call_exitprocs (int, void*);
 
+	__libc_fini_array();
 	__call_exitprocs(status, NULL);
 	if (_REENT->__cleanup)
 		(*_REENT->__cleanup) (_REENT);
@@ -278,6 +280,10 @@ on_process_disposition(int status)
 void
 initialize_newlib(int argc, char *argv[])
 {
+	extern void __libc_init_array(void);
+
+	__libc_init_array();
+
 	/* */
 	libposix_define_at_fdcwd(AT_FDCWD);
 	libposix_define_ononblock(O_NONBLOCK);
