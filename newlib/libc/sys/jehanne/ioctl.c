@@ -66,7 +66,7 @@ tty_setsize(struct winsize *size)
 
 	if(size->ws_xpixel && size->ws_ypixel){
 PixelSized:
-		fd = open("/dev/wctl", OWRITE);
+		fd = sys_open("/dev/wctl", OWRITE);
 		if(fd < 0)
 			return 0;
 		i = jehanne_snprint(buf, sizeof(buf), "resize -dx %su -dy %su", size->ws_xpixel, size->ws_ypixel);
