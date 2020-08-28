@@ -626,15 +626,12 @@ cygheap_pwdgrp::init ()
   grp_cache.cygserver.init_grp ();
   grp_cache.file.init_grp ();
   grp_cache.win.init_grp ();
-  /* Default settings:
+  /* Default settings (excluding fallbacks):
 
      passwd: files db
      group:  files db
      db_prefix: auto		DISABLED
      db_separator: +		DISABLED
-     db_home: cygwin desc
-     db_shell: cygwin desc
-     db_gecos: cygwin desc
      db_enum: cache builtin
   */
   pwd_src = (NSS_SRC_FILES | NSS_SRC_DB);
@@ -793,12 +790,12 @@ cygheap_pwdgrp::nss_init_line (const char *line)
 	    scheme = gecos_scheme;
 	  if (scheme)
 	    {
-	      uint16_t idx = 0;
+	      for (uint16_t idx = 0; idx < NSS_SCHEME_MAX; ++idx)
+		scheme[idx].method = NSS_SCHEME_FALLBACK;
 
-	      scheme[0].method = scheme[1].method = NSS_SCHEME_FALLBACK;
 	      c = strchr (c, ':') + 1;
 	      c += strspn (c, " \t");
-	      while (*c && idx < NSS_SCHEME_MAX)
+	      for (uint16_t idx = 0; *c && idx < NSS_SCHEME_MAX; ++idx)
 		{
 		  if (NSS_CMP ("windows"))
 		    scheme[idx].method = NSS_SCHEME_WINDOWS;
@@ -823,18 +820,16 @@ cygheap_pwdgrp::nss_init_line (const char *line)
 					  c, e - c);
 		    }
 		  else
-		    debug_printf ("Invalid nsswitch.conf content: %s", line);
+		    {
+		      debug_printf ("Invalid nsswitch.conf content: %s", line);
+		      --idx;
+		    }
 		  c += strcspn (c, " \t");
 		  c += strspn (c, " \t");
-		  ++idx;
-		}
-	      /* If nothing has been set, revert to default. */
-	      if (scheme[0].method == NSS_SCHEME_FALLBACK)
-		{
-		  scheme[0].method = NSS_SCHEME_CYGWIN;
-		  scheme[1].method = NSS_SCHEME_DESC;
 		}
 	    }
+	  else
+	      debug_printf ("Invalid nsswitch.conf content: %s", line);
 	}
       break;
     case '\0':
@@ -1748,7 +1743,7 @@ pwdgrp::fetch_account_from_file (fetch_user_arg_t &arg)
       /* Override SID with SID string. */
       arg.sid->string (str);
       arg.name = str;
-      /*FALLTHRU*/
+      fallthrough;
     case NAME_arg:
       arg.len = strlen (arg.name);
       break;
@@ -1911,9 +1906,6 @@ pwdgrp::construct_sid_from_name (cygsid &sid, wchar_t *name, wchar_t *sep)
     }
   return false;
 }
-
-/* CV 2018-08-28: SidTypeLogonSession is not yet defined in Mingw64. */
-#define SidTypeLogonSession 11
 
 char *
 pwdgrp::fetch_account_from_windows (fetch_user_arg_t &arg, cyg_ldap *pldap)
@@ -2308,7 +2300,7 @@ pwdgrp::fetch_account_from_windows (fetch_user_arg_t &arg, cyg_ldap *pldap)
 	      if (!its_ok)
 		return NULL;
 	    }
-	  /*FALLTHRU*/
+	  fallthrough;
 	case SidTypeGroup:
 	case SidTypeAlias:
 	  /* Predefined alias? */

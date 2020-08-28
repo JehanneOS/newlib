@@ -28,6 +28,8 @@ details. */
 #define MIN_CTRL_C_SLOP 50
 #endif
 
+typedef void *HPCON;
+
 #include <devices.h>
 class tty_min
 {
@@ -88,14 +90,25 @@ public:
 
 private:
   HANDLE _from_master;
+  HANDLE _from_master_cyg;
   HANDLE _to_master;
   HANDLE _to_master_cyg;
+  HPCON h_pseudo_console;
+  bool pcon_start;
+  bool switch_to_pcon_in;
+  bool mask_switch_to_pcon_in;
+  pid_t pcon_pid;
+  UINT term_code_page;
+  DWORD pcon_last_time;
+  HANDLE h_pcon_write_pipe;
 
 public:
-  HANDLE from_master() const { return _from_master; }
-  HANDLE to_master() const { return _to_master; }
-  HANDLE to_master_cyg() const { return _to_master_cyg; }
+  HANDLE from_master () const { return _from_master; }
+  HANDLE from_master_cyg () const { return _from_master_cyg; }
+  HANDLE to_master () const { return _to_master; }
+  HANDLE to_master_cyg () const { return _to_master_cyg; }
   void set_from_master (HANDLE h) { _from_master = h; }
+  void set_from_master_cyg (HANDLE h) { _from_master_cyg = h; }
   void set_to_master (HANDLE h) { _to_master = h; }
   void set_to_master_cyg (HANDLE h) { _to_master_cyg = h; }
 
@@ -117,7 +130,10 @@ public:
   void set_master_ctl_closed () {master_pid = -1;}
   static void __stdcall create_master (int);
   static void __stdcall init_session ();
+  void wait_pcon_fwd (void);
+  friend class fhandler_pty_common;
   friend class fhandler_pty_master;
+  friend class fhandler_pty_slave;
 };
 
 class tty_list

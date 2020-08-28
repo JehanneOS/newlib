@@ -452,10 +452,7 @@ cygwin_internal (cygwin_getinfo_types t, ...)
 	res = CYGTLS_PADSIZE;
 	break;
       case CW_SET_DOS_FILE_WARNING:
-	{
-	  dos_file_warning = va_arg (arg, int);
-	  res = 0;
-	}
+	res = 0;
 	break;
       case CW_SET_PRIV_KEY:
 	{
@@ -548,7 +545,7 @@ cygwin_internal (cygwin_getinfo_types t, ...)
 	break;
 
       case CW_ALLOC_DRIVE_MAP:
-      	{
+	{
 	  dos_drive_mappings *ddm = new dos_drive_mappings ();
 	  res = (uintptr_t) ddm;
 	}
@@ -659,7 +656,7 @@ cygwin_internal (cygwin_getinfo_types t, ...)
 					 "sshd",
 					 username_buffer,
 					 sizeof username_buffer);
-	     
+
 	     If this call succeeds, sshd expects the correct Cygwin
 	     username of the unprivileged sshd account in username_buffer.
 

@@ -14,9 +14,11 @@ configure_args=@configure_args@
 export CC:=@CC@
 export CXX:=@CXX@
 
+CFLAGS_COMMON=-Wimplicit-fallthrough=4 -Werror
 CFLAGS:=@CFLAGS@
 CXXFLAGS:=@CXXFLAGS@
-override CXXFLAGS+=-fno-exceptions -fno-rtti
+override CFLAGS+=${CFLAGS_COMMON}
+override CXXFLAGS+=-fno-exceptions -fno-rtti ${CFLAGS_COMMON}
 
 include ${srcdir}/../Makefile.common
 
@@ -113,10 +115,10 @@ build_dumper := $(shell test -r "$(libbfd)" && echo 1)
 
 ifdef build_dumper
 CYGWIN_BINS += dumper.exe
-dumper.o module_info.o parse_pe.o: CXXFLAGS += -I$(top_srcdir)/include
-dumper.o parse_pe.o: dumper.h
-dumper.exe: module_info.o parse_pe.o
-dumper.exe: CYGWIN_LDFLAGS += -lpsapi -lbfd -lintl -liconv -liberty ${ZLIB}
+dumper.o module_info.o: CXXFLAGS += -I$(top_srcdir)/include
+dumper.o: dumper.h
+dumper.exe: module_info.o
+dumper.exe: CYGWIN_LDFLAGS += -lpsapi -lbfd -lintl -liconv -liberty ${ZLIB} -lntdll
 else
 all: warn_dumper
 endif

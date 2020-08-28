@@ -31,7 +31,7 @@ details. */
 /* FIXME: Once things stabilize, bump up to a few minutes.  */
 #define FORK_WAIT_TIMEOUT (300 * 1000)     /* 300 seconds */
 
-static int dofork (bool *with_forkables);
+static int dofork (void **proc, bool *with_forkables);
 class frok
 {
   frok (bool *forkables)
@@ -47,7 +47,7 @@ class frok
   int __stdcall parent (volatile char * volatile here);
   int __stdcall child (volatile char * volatile here);
   bool error (const char *fmt, ...);
-  friend int dofork (bool *with_forkables);
+  friend int dofork (void **proc, bool *with_forkables);
 };
 
 static void
@@ -185,7 +185,6 @@ frok::child (volatile char * volatile here)
      - terminate the current fork call even if the child is initialized. */
   sync_with_parent ("performed fork fixups and dynamic dll loading", true);
 
-  init_console_handler (myself->ctty > 0);
   ForceCloseHandle1 (fork_info->forker_finished, forker_finished);
 
   pthread::atforkchild ();
@@ -416,7 +415,7 @@ frok::parent (volatile char * volatile stack_here)
      it in afterwards.  This requires more bookkeeping than I like, though,
      so we'll just do it the easy way.  So, terminate any child process if
      we can't actually record the pid in the internal table. */
-  if (!child.remember (false))
+  if (!child.remember ())
     {
       this_errno = EAGAIN;
 #ifdef DEBUGGING0
@@ -510,11 +509,11 @@ frok::parent (volatile char * volatile stack_here)
 
   /* Do not attach to the child before it has successfully initialized.
      Otherwise we may wait forever, or deliver an orphan SIGCHILD. */
-  if (!child.reattach ())
+  if (!child.attach ())
     {
       this_errno = EAGAIN;
 #ifdef DEBUGGING0
-      error ("child reattach failed");
+      error ("child attach failed");
 #endif
       goto cleanup;
     }
@@ -554,17 +553,36 @@ extern "C" int
 fork ()
 {
   bool with_forkables = false; /* do not force hardlinks on first try */
-  int res = dofork (&with_forkables);
+  int res = dofork (NULL, &with_forkables);
   if (res >= 0)
     return res;
   if (with_forkables)
     return res; /* no need for second try when already enabled */
   with_forkables = true; /* enable hardlinks for second try */
-  return dofork (&with_forkables);
+  return dofork (NULL, &with_forkables);
+}
+
+
+/* __posix_spawn_fork is called from newlib's posix_spawn implementation.
+   The original code in newlib has been taken from FreeBSD, and the core
+   code relies on specific, non-portable behaviour of vfork(2).  Our
+   replacement implementation needs the forked child's HANDLE for
+   synchronization, so __posix_spawn_fork returns it in proc. */
+extern "C" int
+__posix_spawn_fork (void **proc)
+{
+  bool with_forkables = false; /* do not force hardlinks on first try */
+  int res = dofork (proc, &with_forkables);
+  if (res >= 0)
+    return res;
+  if (with_forkables)
+    return res; /* no need for second try when already enabled */
+  with_forkables = true; /* enable hardlinks for second try */
+  return dofork (proc, &with_forkables);
 }
 
 static int
-dofork (bool *with_forkables)
+dofork (void **proc, bool *with_forkables)
 {
   frok grouped (with_forkables);
 
@@ -641,6 +659,11 @@ dofork (bool *with_forkables)
 		       grouped.errmsg, grouped.this_errno);
 
       set_errno (grouped.this_errno);
+    }
+  else if (proc)
+    {
+      /* Return child process handle to posix_fork. */
+      *proc = grouped.hchild;
     }
   syscall_printf ("%R = fork()", res);
   return res;

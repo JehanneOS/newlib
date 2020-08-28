@@ -25,6 +25,7 @@ details. */
 #include "../cygwin/include/sys/cygwin.h"
 #include "../cygwin/include/cygwin/version.h"
 #include "../cygwin/cygtls_padsize.h"
+#include "../cygwin/gcc_seh.h"
 #include "path.h"
 #undef cygwin_internal
 #include "loadlib.h"
@@ -790,6 +791,13 @@ proc_child (unsigned mask, FILE *ofile, pid_t pid)
 	    case STATUS_BREAKPOINT:
 	    case 0x406d1388:		/* SetThreadName exception. */
 	      break;
+#ifdef __x86_64__
+	    case STATUS_GCC_THROW:
+	    case STATUS_GCC_UNWIND:
+	    case STATUS_GCC_FORCED:
+	      status = DBG_EXCEPTION_NOT_HANDLED;
+	      break;
+#endif
 	    default:
 	      status = DBG_EXCEPTION_NOT_HANDLED;
 	      if (ev.u.Exception.dwFirstChance)
@@ -957,7 +965,7 @@ parse_mask (const char *ms, char **endptr)
   return retval;
 }
 
-static void
+static void __attribute__ ((__noreturn__))
 usage (FILE *where = stderr)
 {
   fprintf (where, "\
@@ -1102,9 +1110,7 @@ main2 (int argc, char **argv)
 	forkdebug ^= 1;
 	break;
       case 'h':
-	// Print help and exit
 	usage (stdout);
-	break;
       case 'H':
 	include_hex ^= 1;
 	break;

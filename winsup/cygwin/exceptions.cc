@@ -28,6 +28,7 @@ details. */
 #include "ntdll.h"
 #include "exception.h"
 #include "posix_timer.h"
+#include "gcc_seh.h"
 
 /* Definitions for code simplification */
 #ifdef __x86_64__
@@ -42,6 +43,7 @@ details. */
 
 #define CALL_HANDLER_RETRY_OUTER 10
 #define CALL_HANDLER_RETRY_INNER 10
+#define DUMPSTACK_FRAME_LIMIT    32
 
 PWCHAR debugger_command;
 extern uint8_t _sigbe;
@@ -382,7 +384,7 @@ cygwin_exception::dumpstack ()
 #else
       small_printf ("Stack trace:\r\nFrame     Function  Args\r\n");
 #endif
-      for (i = 0; i < 16 && thestack++; i++)
+      for (i = 0; i < DUMPSTACK_FRAME_LIMIT && thestack++; i++)
 	{
 	  small_printf (_AFMT "  " _AFMT, thestack.sf.AddrFrame.Offset,
 			thestack.sf.AddrPC.Offset);
@@ -392,7 +394,8 @@ cygwin_exception::dumpstack ()
 	  small_printf (")\r\n");
 	}
       small_printf ("End of stack trace%s\n",
-		    i == 16 ? " (more stack frames may be present)" : "");
+		    i == DUMPSTACK_FRAME_LIMIT ?
+		        " (more stack frames may be present)" : "");
       if (h)
 	NtClose (h);
     }
@@ -739,7 +742,7 @@ exception::handle (EXCEPTION_RECORD *e, exception_list *frame, CONTEXT *in,
 	 Linux behaviour and also makes a lot of sense on Windows. */
       if (me.altstack.ss_flags)
 	global_sigs[SIGSEGV].sa_handler = SIG_DFL;
-      /*FALLTHRU*/
+      fallthrough;
     case STATUS_ARRAY_BOUNDS_EXCEEDED:
     case STATUS_IN_PAGE_ERROR:
     case STATUS_NO_MEMORY:
@@ -759,6 +762,16 @@ exception::handle (EXCEPTION_RECORD *e, exception_list *frame, CONTEXT *in,
 	 if gcc ever supports Windows style structured exception
 	 handling.  */
       return ExceptionContinueExecution;
+
+#ifdef __x86_64__
+    case STATUS_GCC_THROW:
+    case STATUS_GCC_UNWIND:
+    case STATUS_GCC_FORCED:
+      /* According to a comment in the GCC function
+	 _Unwind_RaiseException(), GCC expects us to continue all the
+	 (continuable) GCC exceptions that reach us. */
+      return ExceptionContinueExecution;
+#endif
 
     default:
       /* If we don't recognize the exception, we have to assume that
@@ -812,7 +825,7 @@ exception::handle (EXCEPTION_RECORD *e, exception_list *frame, CONTEXT *in,
   /* POSIX requires that for SIGSEGV and SIGBUS, si_addr should be set to the
      address of faulting memory reference.  For SIGILL and SIGFPE these should
      be the address of the faulting instruction.  Other signals are apparently
-     undefined so we just set those to the faulting instruction too.  */ 
+     undefined so we just set those to the faulting instruction too.  */
   si.si_addr = (si.si_signo == SIGSEGV || si.si_signo == SIGBUS)
 	       ? (void *) e->ExceptionInformation[1] : (void *) in->_GR(ip);
   me.incyg++;
@@ -949,7 +962,7 @@ _cygtls::interrupt_setup (siginfo_t& si, void *handler, struct sigaction& siga)
   if (incyg)
     set_signal_arrived ();
 
-  if (!have_execed)
+  if (!have_execed && !(myself->exec_sendsig && !ch_spawn.iscygwin ()))
     proc_subproc (PROC_CLEARWAIT, 1);
   sigproc_printf ("armed signal_arrived %p, signal %d",
 		  signal_arrived, si.si_signo);
@@ -1164,7 +1177,7 @@ extern "C" int
 sighold (int sig)
 {
   /* check that sig is in right range */
-  if (sig < 0 || sig >= NSIG)
+  if (sig < 0 || sig >= _NSIG)
     {
       set_errno (EINVAL);
       syscall_printf ("signal %d out of range", sig);
@@ -1180,7 +1193,7 @@ extern "C" int
 sigrelse (int sig)
 {
   /* check that sig is in right range */
-  if (sig < 0 || sig >= NSIG)
+  if (sig < 0 || sig >= _NSIG)
     {
       set_errno (EINVAL);
       syscall_printf ("signal %d out of range", sig);
@@ -1199,7 +1212,7 @@ sigset (int sig, _sig_func_ptr func)
   _sig_func_ptr prev;
 
   /* check that sig is in right range */
-  if (sig < 0 || sig >= NSIG || sig == SIGKILL || sig == SIGSTOP)
+  if (sig < 0 || sig >= _NSIG || sig == SIGKILL || sig == SIGSTOP)
     {
       set_errno (EINVAL);
       syscall_printf ("SIG_ERR = sigset (%d, %p)", sig, func);
@@ -1453,7 +1466,7 @@ sigpacket::process ()
 	    tls = NULL;
 	}
     }
-      
+
   /* !tls means no threads available to catch a signal. */
   if (!tls)
     {

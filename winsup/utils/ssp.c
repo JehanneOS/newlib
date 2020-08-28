@@ -465,7 +465,7 @@ run_program (char *cmdline)
 		      thread_return_address[tix] = rv;
 		}
 	      set_step_threads (event.dwThreadId, stepping_enabled);
-	      /* fall-through */
+	      /*FALLTHRU*/
 	    case STATUS_SINGLE_STEP:
 	      opcode_count++;
 	      pc = (CONTEXT_REG)event.u.Exception.ExceptionRecord.ExceptionAddress;
@@ -674,7 +674,7 @@ run_program (char *cmdline)
 
 }
 
-static void
+static void __attribute__ ((__noreturn__))
 usage (FILE * stream)
 {
   fprintf (stream , ""
@@ -880,7 +880,6 @@ main (int argc, char **argv)
 	break;
       case 'h':
 	usage (stdout);
-	break;
       case 'l':
 	printf ("profiling dll usage\n");
 	dll_counts = 1;

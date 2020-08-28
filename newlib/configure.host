@@ -29,6 +29,7 @@
 #   newlib_io_long_double --enable-newlib-io-long-double ("yes", "no", "")
 #   newlib_global_stdio_streams --enable-global-stdio-streams ("yes", "no, "")
 #   newlib_fno_builtin  --disable-newlib-fno-builtin ("yes", "no, "")
+#   newlib_reent_check_verify  --enable-newlib-reent-check-verify ("yes", "no, "")
 
 # It sets the following shell variables:
 #   newlib_cflags	Special CFLAGS to use when building
@@ -76,6 +77,7 @@ default_newlib_io_long_double=no
 default_newlib_io_pos_args=no
 default_newlib_atexit_dynamic_alloc=yes
 default_newlib_nano_malloc=no
+default_newlib_reent_check_verify=yes
 aext=a
 oext=o
 lpfx="lib_a-"
@@ -85,7 +87,7 @@ case "${target_optspace}:${host}" in
   yes:*)
     newlib_cflags="${newlib_cflags} -Os"
     ;;
-  :m32r-* | :d10v-* | :d30v-* | :avr-* | :m32c-* | :msp430*-* | :nds32* | :rl78-* )
+  :m32r-* | :d10v-* | :d30v-* | :avr-* | :m32c-* | :msp430*-* | :nds32* | :pru-* | :rl78-* )
     newlib_cflags="${newlib_cflags} -Os"
     ;;
   no:* | :*)
@@ -245,6 +247,7 @@ case "${host_cpu}" in
 	;;
   mips*)
 	machine_dir=mips
+	libm_machine_dir=mips
 	;;
   mmix)
 	;;
@@ -288,6 +291,16 @@ case "${host_cpu}" in
 	;;
   powerpc*)
 	machine_dir=powerpc
+	libm_machine_dir=powerpc
+	;;
+  pru*)
+	newlib_cflags="${newlib_cflags} -DPREFER_SIZE_OVER_SPEED"
+	newlib_cflags="${newlib_cflags} -DNO_EXEC"
+	newlib_cflags="${newlib_cflags} -DSMALL_MEMORY"
+	default_newlib_nano_malloc="yes"
+	default_newlib_atexit_dynamic_alloc="no"
+	machine_dir=pru
+	libm_machine_dir=pru
 	;;
   riscv*)
 	libm_machine_dir=riscv
@@ -310,6 +323,7 @@ case "${host_cpu}" in
 	machine_dir=sh
 	;;
   sparc*)
+	libm_machine_dir=sparc
 	machine_dir=sparc
 	# FIXME: Might wish to make MALLOC_ALIGNMENT more generic.
 	newlib_cflags="${newlib_cflags} -DMALLOC_ALIGNMENT=8"
@@ -339,6 +353,7 @@ case "${host_cpu}" in
 	;;
   x86_64)
 	machine_dir=x86_64
+	libm_machine_dir=x86_64
 	;;
   xc16x*)
         machine_dir=xc16x
@@ -871,6 +886,10 @@ newlib_cflags="${newlib_cflags} -DCLOCK_PROVIDED -DMALLOC_PROVIDED -DEXIT_PROVID
 	newlib_cflags="${newlib_cflags} -DHAVE_OPENDIR -DHAVE_RENAME -DHAVE_FCNTL -D_NO_POSIX_SPAWN"
 	syscall_dir=syscalls
 	;;
+  pru*)
+	syscall_dir=syscalls
+	newlib_cflags="${newlib_cflags} -DSMALL_MEMORY -D_REENT_SMALL"
+	;;
   riscv*-*-*)
 	syscall_dir=syscalls
 	;;
@@ -966,6 +985,13 @@ fi
 if [ "x${newlib_nano_malloc}" = "x" ]; then
 	if [ ${default_newlib_nano_malloc} = "yes" ]; then
 		newlib_nano_malloc="yes";
+	fi
+fi
+
+# Enable _REENT_CHECK macro memory allocation verification.
+if [ "x${newlib_reent_check_verify}" = "x" ]; then
+	if [ ${default_newlib_reent_check_verify} = "yes" ]; then
+		newlib_reent_check_verify="yes";
 	fi
 fi
 

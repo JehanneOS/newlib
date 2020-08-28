@@ -27,7 +27,7 @@ export CCWRAP_HEADERS:=. ${srcdir}
 export CCWRAP_SYSTEM_HEADERS:=@cygwin_headers@ @newlib_headers@
 export CCWRAP_DIRAFTER_HEADERS:=@windows_headers@
 
-VPATH+=$(srcdir)/regex $(srcdir)/lib $(srcdir)/libc $(srcdir)/math
+VPATH+=$(srcdir)/regex $(srcdir)/lib $(srcdir)/libc $(srcdir)/math $(srcdir)/tzcode
 
 target_cpu:=@target_cpu@
 target_alias:=@target_alias@
@@ -73,11 +73,11 @@ CRT0:=$(cygwin_build)/crt0.o
 #
 MT_SAFE:=@MT_SAFE@
 CCEXTRA=
-COMMON_CFLAGS=-MMD ${$(*F)_CFLAGS} -Werror -fmerge-constants -ftracer $(CCEXTRA)
+COMMON_CFLAGS=-MMD ${$(*F)_CFLAGS} -Wimplicit-fallthrough=5 -Werror -fmerge-constants -ftracer $(CCEXTRA)
 ifeq ($(target_cpu),x86_64)
 COMMON_CFLAGS+=-mcmodel=small
 endif
-COMPILE.cc+=${COMMON_CFLAGS} -std=gnu++98
+COMPILE.cc+=${COMMON_CFLAGS} # -std=gnu++14
 COMPILE.c+=${COMMON_CFLAGS}
 
 AR:=@AR@
@@ -246,6 +246,8 @@ MATH_OFILES:= \
 	tgammal.o \
 	truncl.o
 
+TZCODE_OFILES:=localtime.o
+
 DLL_OFILES:= \
 	advapi32.o \
 	aio.o \
@@ -333,7 +335,6 @@ DLL_OFILES:= \
 	ldap.o \
 	libstdcxx_wrapper.o \
 	loadavg.o \
-	localtime.o \
 	lsearch.o \
 	malloc_wrapper.o \
 	minires-os-if.o \
@@ -412,6 +413,7 @@ DLL_OFILES:= \
 	$(EXTRA_OFILES) \
 	$(MALLOC_OFILES) \
 	$(MATH_OFILES) \
+	$(TZCODE_OFILES) \
 	$(MT_SAFE_OBJECTS)
 
 EXCLUDE_STATIC_OFILES:=$(addprefix --exclude=,\
@@ -567,6 +569,8 @@ ifeq ($(target_cpu),i686)
 exceptions_CFLAGS:=-fno-omit-frame-pointer
 endif
 endif
+# required since gcc 9.x
+exec_CFLAGS:=-fno-builtin-execve
 
 fhandler_proc_CFLAGS+=-DUSERNAME="\"$(USER)\"" -DHOSTNAME="\"$(HOSTNAME)\""
 fhandler_proc_CFLAGS+=-DGCC_VERSION="\"`$(CC) -v 2>&1 | tail -n 1`\""
@@ -666,7 +670,9 @@ uninstall-man:
 	done
 
 clean distclean realclean:
-	-rm -f *.o *.dll *.dbg *.a *.exp junk *.base version.cc *.exe *.d *stamp* *_magic.h sigfe.s cygwin.def globals.h
+	-rm -f *.o *.dll *.dbg *.a *.exp junk *.base version.cc *.exe *.d \
+	       *stamp* *_magic.h sigfe.s cygwin.def cygwin.map cygwin.sc \
+	       globals.h localtime.patched.c
 	-@$(MAKE) -C ${cygserver_blddir} libclean
 
 maintainer-clean: clean
@@ -729,6 +735,16 @@ child_info_magic.h: cygmagic child_info.h
 dcrt0.o sigproc.o: child_info_magic.h
 
 shared.o: shared_info_magic.h
+
+localtime.patched.c: tzcode/localtime.c tzcode/localtime.c.patch
+	patch -u -o localtime.patched.c \
+		    $(srcdir)/tzcode/localtime.c \
+		    $(srcdir)/tzcode/localtime.c.patch
+
+localtime.o: tzcode/localtime_wrapper.c localtime.patched.c
+	$(CC) ${COMMON_CFLAGS} ${localtime_CFLAGS} \
+		-I$(target_builddir)/winsup/cygwin \
+		-I$(srcdir) -I$(srcdir)/tzcode -c -o $@ $<
 
 $(srcdir)/devices.cc: gendevices devices.in devices.h
 	${wordlist 1,2,$^} $@
